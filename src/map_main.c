@@ -48,7 +48,5 @@ int main() {
 
   deleteMap(m);
 
-  // test 2
-
   return 0;
 }
