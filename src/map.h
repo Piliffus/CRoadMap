@@ -10,6 +10,15 @@
 #define __MAP_H__
 
 #include <stdbool.h>
+/**
+  * Struktura przechowująca informacje o mieście.
+  */
+typedef struct City City;
+
+/**
+   * Struktura przechowująca informacje o drodze.
+   */
+typedef struct Road Road;
 
 /**
  * Struktura przechowująca mapę dróg krajowych.
