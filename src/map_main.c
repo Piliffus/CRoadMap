@@ -7,6 +7,21 @@
 
 #include <assert.h>
 
+struct City
+{
+	char* name;
+};
+
+struct Road
+{
+	unsigned int length;
+	int year;
+};
+
+struct Map
+{
+};
+
 int main() 
 {
   char const* str;
