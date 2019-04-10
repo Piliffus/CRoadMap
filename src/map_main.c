@@ -12,10 +12,22 @@ struct City
 	char* name;
 };
 
+struct CityList
+{
+	City* this;
+	City* next;
+};
+
 struct Road
 {
 	unsigned int length;
 	int year;
+};
+
+struct RoadList
+{
+	Road* this;
+	Road* next;
 };
 
 struct Map
