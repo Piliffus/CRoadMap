@@ -34,6 +34,13 @@ struct Map
 {
 };
 
+Map* newMap(void) 
+{
+	Map* newMap = malloc(sizeof(Map));
+
+	return newMap;
+}
+
 int main() 
 {
   char const* str;

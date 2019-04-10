@@ -16,7 +16,7 @@
 typedef struct City City;
 
 /**
-  * Lista przechowująca informacje o miastach.
+  * Lista przechowująca miasta.
   */
 typedef struct CityList CityList;
 
@@ -26,7 +26,7 @@ typedef struct CityList CityList;
 typedef struct Road Road;
 
 /**
-   * Lista przechowująca informacje o drogach.
+   * Lista przechowująca drogi.
    */
 typedef struct RoadList RoadList;
 
