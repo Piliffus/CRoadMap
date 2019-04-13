@@ -66,6 +66,16 @@ void deleteMap(Map *map);
 bool addRoad(Map *map, const char *city1, const char *city2,
              unsigned length, int builtYear);
 
+/** @brief Sprawdza czy istnieje miasto o danej nazwie.
+ * Funkcja szuka na liście miast będacej częścią mapy
+ * miasta o podanej nazwie.
+ * @param[in] map			– wskaźnik na strukturę przechowującą mapę dróg;
+ * @param[in] cityName		– wskaźnik na napis reprezentujący nazwę miasta;
+ * @return Wartość @p true, jeśli na liście istnieje takie miasto.
+ * Wartość @p false, jeśli nie ma takiego miasta.
+ */
+bool findCity(Map *map, const char *cityName);
+
 /** @brief Modyfikuje rok ostatniego remontu odcinka drogi.
  * Dla odcinka drogi między dwoma miastami zmienia rok jego ostatniego remontu
  * lub ustawia ten rok, jeśli odcinek nie był jeszcze remontowany.
