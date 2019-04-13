@@ -69,12 +69,21 @@ bool addRoad(Map *map, const char *city1, const char *city2,
 /** @brief Sprawdza czy istnieje miasto o danej nazwie.
  * Funkcja szuka na liście miast będacej częścią mapy
  * miasta o podanej nazwie.
- * @param[in] map			– wskaźnik na strukturę przechowującą mapę dróg;
- * @param[in] cityName		– wskaźnik na napis reprezentujący nazwę miasta;
+ * @param[in] map        – wskaźnik na strukturę przechowującą mapę dróg;
+ * @param[in] cityName   – wskaźnik na napis reprezentujący nazwę miasta;
  * @return Wskaźnik na miasto, jesli takie miasto istnieje
  * lub NULL, jeśli nie ma takiego miasta.
  */
 City* findCity(Map *map, const char *cityName);
+
+/** @brief Sprawdza czy nazwa jest poprawną nazwą dla miasta.
+ * Funkcja szuka w ciągu znaków znaków o kodach od 0 do 31, średników, oraz
+ * sprawdza czy ciąg nie jest pusty.
+ * @param[in] name       – ciąg znaków testowany czy nadaje się na nazwę miasta;
+ * @return Wartość @p true, jesli wszystkie znaki w ciągu są dozwolone
+ * Wartość @p false, jesli nie wszystkie znaki są dozwolone.
+ */
+bool isCorrectName(const char *name);
 
 /** @brief Modyfikuje rok ostatniego remontu odcinka drogi.
  * Dla odcinka drogi między dwoma miastami zmienia rok jego ostatniego remontu
