@@ -63,10 +63,11 @@ bool findCity(Map *map, const char *cityName)
 	{
 		// if current is not null then it must have `this`
 		
-		if (current->this->name == cityName) 
+		if (strcmp(current->this->name, cityName) == 0) 
 		{
 			return true;
 		}
+		
 		current = current->next;
 	}
 
