@@ -55,7 +55,8 @@ void deleteMap(Map *map)
 		free(map);
 	}
 }
-bool findCity(Map *map, const char *cityName) 
+
+City* findCity(Map *map, const char *cityName) 
 {
 	CityList* current = map->cities;
 
@@ -65,13 +66,13 @@ bool findCity(Map *map, const char *cityName)
 		
 		if (strcmp(current->this->name, cityName) == 0) 
 		{
-			return true;
+			return current->this;
 		}
 		
 		current = current->next;
 	}
 
-	return false;
+	return NULL;
 }
 
 bool addRoad(Map *map, const char *city1, const char *city2,

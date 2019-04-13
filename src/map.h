@@ -71,10 +71,10 @@ bool addRoad(Map *map, const char *city1, const char *city2,
  * miasta o podanej nazwie.
  * @param[in] map			– wskaźnik na strukturę przechowującą mapę dróg;
  * @param[in] cityName		– wskaźnik na napis reprezentujący nazwę miasta;
- * @return Wartość @p true, jeśli na liście istnieje takie miasto.
- * Wartość @p false, jeśli nie ma takiego miasta.
+ * @return Wskaźnik na miasto, jesli takie miasto istnieje
+ * lub NULL, jeśli nie ma takiego miasta.
  */
-bool findCity(Map *map, const char *cityName);
+City* findCity(Map *map, const char *cityName);
 
 /** @brief Modyfikuje rok ostatniego remontu odcinka drogi.
  * Dla odcinka drogi między dwoma miastami zmienia rok jego ostatniego remontu
