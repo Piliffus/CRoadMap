@@ -75,18 +75,36 @@ City* findCity(Map *map, const char *cityName)
 	return NULL;
 }
 
-bool isCorrectName(const char *name) 
+bool isCorrectName(const char *name)  // helper
 {
-	// TODO
+	int i = 0;
+	
+	if (name[i] == '\0') 
+	{ 
+		return false; 
+	}
+	
+	while (name[i] != '\0') 
+	{
+		if (name[i] <= 31 || name[i] == ';')
+		{
+			return false;
+		}
+		else 
+		{
+			i++;
+		}
+	}
+	
 	return true;
 }
 
-void makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear) 
+void makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear) // helper
 {
 	// TODO, has no declaration
 }
 
-City* makeNewCity(Map *map, const char *name)
+City* makeNewCity(Map *map, const char *name) // helper
 {
 	// TODO, has no declaration
 	return NULL;

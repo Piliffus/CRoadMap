@@ -13,22 +13,22 @@
 /**
   * Struktura przechowująca informacje o mieście.
   */
-typedef struct City City;
+typedef struct City City; // mine
 
 /**
   * Lista przechowująca miasta.
   */
-typedef struct CityList CityList;
+typedef struct CityList CityList; // mine
 
 /**
    * Struktura przechowująca informacje o drodze.
    */
-typedef struct Road Road;
+typedef struct Road Road; // mine
 
 /**
    * Lista przechowująca drogi.
    */
-typedef struct RoadList RoadList;
+typedef struct RoadList RoadList; // mine
 
 /**
  * Struktura przechowująca mapę dróg krajowych.
@@ -74,7 +74,7 @@ bool addRoad(Map *map, const char *city1, const char *city2,
  * @return Wskaźnik na miasto, jesli takie miasto istnieje
  * lub NULL, jeśli nie ma takiego miasta.
  */
-City* findCity(Map *map, const char *cityName);
+City* findCity(Map *map, const char *cityName); // mine, helper
 
 /** @brief Sprawdza czy nazwa jest poprawną nazwą dla miasta.
  * Funkcja szuka w ciągu znaków znaków o kodach od 0 do 31, średników, oraz
@@ -83,7 +83,7 @@ City* findCity(Map *map, const char *cityName);
  * @return Wartość @p true, jesli wszystkie znaki w ciągu są dozwolone
  * Wartość @p false, jesli nie wszystkie znaki są dozwolone.
  */
-bool isCorrectName(const char *name);
+bool isCorrectName(const char *name); // mine, helper
 
 /** @brief Modyfikuje rok ostatniego remontu odcinka drogi.
  * Dla odcinka drogi między dwoma miastami zmienia rok jego ostatniego remontu
