@@ -38,6 +38,8 @@ CityList* findEmptySpotForCityList(Map *map);
 
 bool addToRoadList(City *whereRoad, RoadList *whatRoad);
 
+Road *findRoadBetweenCities(Map* map, const char *city1, const char *city2);
+
 Map *newMap(void)
 {
     Map *newMap = malloc(sizeof(Map));
@@ -73,7 +75,7 @@ City* findCity(Map *map, const char *cityName)
 {
 	CityList *current = map->cities;
 
-	while (current != NULL) 
+	while (current != NULL)
 	{
 		// if current is not null then it must have `this`
 		
@@ -253,4 +255,55 @@ bool addRoad(Map *map, const char *city1, const char *city2,
 	bool success = makeNewRoad(cityA, cityB, length, builtYear);
 
 	return success;
+}
+
+Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2)
+{
+    City *first = findCity(map, city1);
+    City *second = findCity(map, city2);
+
+    if (first == NULL || second == NULL)
+    {
+        return NULL;
+    }
+
+    RoadList *act = first->roads;
+
+    while (act != NULL)
+    {
+        if (act->this->cityA == second || act->this->cityB == second)
+        {
+            return act->this;
+        }
+        else
+        {
+            act = act->next;
+        }
+    }
+
+    return NULL;
+}
+
+bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
+{
+    if (!isCorrectName(city1) || !isCorrectName(city2))
+    {
+        return false;
+    }
+
+    Road *repairedRoad = findRoadBetweenCities(map, city1, city2);
+
+    if (repairedRoad != NULL)
+    {
+        if (repairYear < repairedRoad->year)
+        {
+            return false;
+        }
+        repairedRoad->year = repairYear;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
