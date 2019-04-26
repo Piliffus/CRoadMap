@@ -12,7 +12,7 @@ struct City
 struct CityList
 {
 	City* this;
-	City* next;
+	CityList* next;
 };
 
 struct Road
@@ -26,7 +26,7 @@ struct Road
 struct RoadList
 {
 	Road* this;
-	Road* next;
+	RoadList* next;
 };
 
 struct Map
@@ -34,17 +34,30 @@ struct Map
 	CityList* cities;
 };
 
-Map* newMap(void)
+CityList* findEmptySpotForCityList(Map *map);
+
+bool addToRoadList(City *whereRoad, RoadList *whatRoad);
+
+Map *newMap(void)
 {
-	Map* newMap = malloc(sizeof(Map));
-	
-	if (newMap != NULL) 
-	{
-		newMap->cities->this = NULL;
-		newMap->cities->next = NULL;
-	}
-	
-	return newMap;
+    Map *newMap = malloc(sizeof(Map));
+
+    if (newMap != NULL)
+    {
+        newMap->cities = malloc(sizeof(CityList));
+
+        if (newMap->cities != NULL)
+        {
+            newMap->cities->this = NULL;
+            newMap->cities->next = NULL;
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+
+    return newMap;
 }
 
 void deleteMap(Map *map)
@@ -99,15 +112,90 @@ bool isCorrectName(const char *name)  // helper
 	return true;
 }
 
-void makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear) // helper
+bool addToRoadList(City *whereRoad, RoadList *addedRoad)
 {
-	// TODO, has no declaration
+    RoadList *act = whereRoad->roads;
+
+    if (act == NULL)
+    {
+        whereRoad->roads = addedRoad;
+    }
+
+    else
+    {
+        while (act != NULL)
+        {
+            act = act->next;
+        }
+
+        act = addedRoad;
+    }
 }
 
-City* makeNewCity(Map *map, const char *name) // helper
+makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear) // helper, true = ok, false error
 {
-	// TODO, has no declaration
-	return NULL;
+    RoadList *newNode = malloc(sizeof(RoadList));
+    if (newNode != NULL)
+    {
+        newNode->next = NULL;
+        newNode->this = malloc(sizeof(Road));
+        if (newNode->this != NULL)
+        {
+            newNode->this->cityA = cityA;
+            newNode->this->cityB = cityB;
+            newNode->this->length = length;
+            newNode->this->year = builtYear;
+            addToRoadList(cityA, newNode);
+            addToRoadList(cityB, newNode);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
+City *makeNewCity(Map *map, const char *name) // helper
+{
+    CityList *where = findEmptySpotForCityList(map);
+    where->next = malloc(sizeof(CityList *));
+    if (where->next != NULL)
+    {
+        where->next->this = malloc(sizeof(City));
+        if (where->next->this != NULL)
+        {
+            where->next->this->name = name; // TODO: will it even work?
+            where->next->this->roads = NULL;
+            return where->next->this; // TODO: first node has no this
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+CityList* findEmptySpotForCityList(Map *map)
+{
+    CityList* whereCity = map->cities;
+    CityList* act = map->cities;
+
+    while (act != NULL)
+    {
+        whereCity = act;
+        act = act->next;
+    }
+
+    return whereCity;
 }
 
 bool addRoad(Map *map, const char *city1, const char *city2,
@@ -147,14 +235,22 @@ bool addRoad(Map *map, const char *city1, const char *city2,
 	if (cityA == NULL) 
 	{
 		cityA = makeNewCity(map, city1);
+		if (cityA == NULL)
+		{
+            return false;
+		}
 	}
 
 	if (cityB == NULL)
 	{
 		cityB = makeNewCity(map, city2);
+	    if (cityB == NULL)
+	    {
+            return false;
+	    }
 	}
 
-	makeNewRoad(cityA, cityB, length, builtYear);
+	bool success = makeNewRoad(cityA, cityB, length, builtYear);
 
-	return true;
+	return success;
 }
