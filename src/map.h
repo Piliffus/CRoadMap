@@ -13,27 +13,27 @@
 /**
   * Struktura przechowująca informacje o mieście.
   */
-typedef struct City City; // mine
+typedef struct City City; // mine DONE
 
 /**
   * Lista przechowująca miasta.
   */
-typedef struct CityList CityList; // mine
+typedef struct CityList CityList; // mine DONE
 
 /**
    * Struktura przechowująca informacje o drodze.
    */
-typedef struct Road Road; // mine
+typedef struct Road Road; // mine DONE
 
 /**
    * Lista przechowująca drogi.
    */
-typedef struct RoadList RoadList; // mine
+typedef struct RoadList RoadList; // mine DONE
 
 /**
  * Struktura przechowująca mapę dróg krajowych.
  */
-typedef struct Map Map;
+typedef struct Map Map; // DONE
 
 /** @brief Tworzy nową strukturę.
  * Tworzy nową, pustą strukturę niezawierającą żadnych miast, odcinków dróg ani
@@ -41,14 +41,14 @@ typedef struct Map Map;
  * @return Wskaźnik na utworzoną strukturę lub NULL, gdy nie udało się
  * zaalokować pamięci.
  */
-Map* newMap(void);
+Map* newMap(void); // DONE
 
 /** @brief Usuwa strukturę.
  * Usuwa strukturę wskazywaną przez @p map.
  * Nic nie robi, jeśli wskaźnik ten ma wartość NULL.
  * @param[in] map        – wskaźnik na usuwaną strukturę.
  */
-void deleteMap(Map *map);
+void deleteMap(Map *map); // DONE
 
 /** @brief Dodaje do mapy odcinek drogi między dwoma różnymi miastami.
  * Jeśli któreś z podanych miast nie istnieje, to dodaje go do mapy, a następnie
@@ -64,7 +64,7 @@ void deleteMap(Map *map);
  * miastami już istnieje lub nie udało się zaalokować pamięci.
  */
 bool addRoad(Map *map, const char *city1, const char *city2,
-             unsigned length, int builtYear);
+             unsigned length, int builtYear); // DONE
 
 /** @brief Sprawdza czy istnieje miasto o danej nazwie.
  * Funkcja szuka na liście miast będacej częścią mapy
@@ -74,7 +74,7 @@ bool addRoad(Map *map, const char *city1, const char *city2,
  * @return Wskaźnik na miasto, jesli takie miasto istnieje
  * lub NULL, jeśli nie ma takiego miasta.
  */
-City* findCity(Map *map, const char *cityName); // mine, helper
+City* findCity(Map *map, const char *cityName); // mine, helper, DONE
 
 /** @brief Sprawdza czy nazwa jest poprawną nazwą dla miasta.
  * Funkcja szuka w ciągu znaków znaków o kodach od 0 do 31, średników, oraz
@@ -83,7 +83,7 @@ City* findCity(Map *map, const char *cityName); // mine, helper
  * @return Wartość @p true, jesli wszystkie znaki w ciągu są dozwolone
  * Wartość @p false, jesli nie wszystkie znaki są dozwolone.
  */
-bool isCorrectName(const char *name); // mine, helper
+bool isCorrectName(const char *name); // mine, helper, DONE
 
 /** @brief Modyfikuje rok ostatniego remontu odcinka drogi.
  * Dla odcinka drogi między dwoma miastami zmienia rok jego ostatniego remontu
@@ -98,7 +98,7 @@ bool isCorrectName(const char *name); // mine, helper
  * podanymi miastami, podany rok jest wcześniejszy niż zapisany dla tego odcinka
  * drogi rok budowy lub ostatniego remontu.
  */
-bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear);
+bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear); // DONE
 
 /** @brief Łączy dwa różne miasta drogą krajową.
  * Tworzy drogę krajową pomiędzy dwoma miastami i nadaje jej podany numer.

@@ -5,40 +5,40 @@
 
 struct City
 {
-	char* name;
-	RoadList* roads;
+    char *name;
+    RoadList *roads;
 };
 
 struct CityList
 {
-	City* this;
-	CityList* next;
+    City *this;
+    CityList *next;
 };
 
 struct Road
 {
-	City* cityA;
-	City* cityB;
-	unsigned length;
-	int year;
+    City *cityA;
+    City *cityB;
+    unsigned length;
+    int year;
 };
 
 struct RoadList
 {
-	Road* this;
-	RoadList* next;
+    Road *this;
+    RoadList *next;
 };
 
 struct Map
 {
-	CityList* cities;
+    CityList *cities;
 };
 
-CityList* findEmptySpotForCityList(Map *map);
+CityList *findEmptySpotForCityList(Map *map);
 
 bool addToRoadList(City *whereRoad, RoadList *whatRoad);
 
-Road *findRoadBetweenCities(Map* map, const char *city1, const char *city2);
+Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2);
 
 Map *newMap(void)
 {
@@ -46,17 +46,7 @@ Map *newMap(void)
 
     if (newMap != NULL)
     {
-        newMap->cities = malloc(sizeof(CityList));
-
-        if (newMap->cities != NULL)
-        {
-            newMap->cities->this = NULL;
-            newMap->cities->next = NULL;
-        }
-        else
-        {
-            return NULL;
-        }
+        newMap->cities = NULL;
     }
 
     return newMap;
@@ -64,91 +54,100 @@ Map *newMap(void)
 
 void deleteMap(Map *map)
 {
-	if (map != NULL) 
-	{
-		// TODO: fix memory leak here, as soon as lists are added
-		free(map);
-	}
+    if (map != NULL)
+    {
+        // TODO: fix memory leak here, as soon as lists are added
+        free(map);
+    }
 }
 
-City* findCity(Map *map, const char *cityName) 
+City *findCity(Map *map, const char *cityName)
 {
-	CityList *current = map->cities;
+    CityList *current = map->cities;
 
-	while (current != NULL)
-	{
-		// if current is not null then it must have `this`
-		
-		if (strcmp(current->this->name, cityName) == 0) 
-		{
-			return current->this;
-		}
-		
-		current = current->next;
-	}
+    while (current != NULL)
+    {
+        // if current is not null then it must have `this`
 
-	return NULL;
+        if (strcmp(current->this->name, cityName) == 0)
+        {
+            return current->this;
+        }
+
+        current = current->next;
+    }
+
+    return NULL;
 }
 
 bool isCorrectName(const char *name)  // helper
 {
-	int i = 0;
-	
-	if (name[i] == '\0') 
-	{ 
-		return false; 
-	}
-	
-	while (name[i] != '\0') 
-	{
-		if (name[i] <= 31 || name[i] == ';')
-		{
-			return false;
-		}
-		else 
-		{
-			i++;
-		}
-	}
-	
-	return true;
+    int i = 0;
+
+    if (name[i] == '\0')
+    {
+        return false;
+    }
+
+    while (name[i] != '\0')
+    {
+        // We check if the name is positive, because Unicode characters outside
+        // the 0..127 range are encoded as two to four bytes with most
+        // significant bit on. This causes them to be negative and to fail the
+        // name[i] <= 31 check.
+        if ((name[i] >= 0 && name[i] <= 31) || name[i] == ';')
+        {
+            return false;
+        }
+        else
+        {
+            i++;
+        }
+    }
+
+    return true;
 }
 
 bool addToRoadList(City *whereRoad, RoadList *addedRoad)
 {
-    RoadList *act = whereRoad->roads;
+    RoadList *current = whereRoad->roads;
 
-    if (act == NULL)
+    if (current == NULL)
     {
         whereRoad->roads = addedRoad;
     }
 
     else
     {
-        while (act != NULL)
+        RoadList *previous = current;
+        while (current != NULL)
         {
-            act = act->next;
+            previous = current;
+            current = current->next;
         }
 
-        act = addedRoad;
+        previous->next = addedRoad;
     }
 }
 
-makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear) // helper, true = ok, false error
+bool makeNewRoad(City *cityA, City *cityB, unsigned length,
+                 int builtYear) // helper, true = ok, false error
 {
-    RoadList *newNode = malloc(sizeof(RoadList));
-    if (newNode != NULL)
+    RoadList *newNodeA = malloc(sizeof(RoadList));
+    RoadList *newNodeB = malloc(sizeof(RoadList));
+    Road *road;
+    if (newNodeA != NULL && newNodeB != NULL)
     {
-        newNode->next = NULL;
-        newNode->this = malloc(sizeof(Road));
-        if (newNode->this != NULL)
+        newNodeA->next = newNodeB->next = NULL;
+        road = newNodeA->this = newNodeB->this = malloc(sizeof(Road));
+        if (newNodeA->this != NULL)
         {
-            newNode->this->cityA = cityA;
-            newNode->this->cityB = cityB;
-            newNode->this->length = length;
-            newNode->this->year = builtYear;
-            addToRoadList(cityA, newNode);
-            addToRoadList(cityB, newNode);
+            road->cityA = cityA;
+            road->cityB = cityB;
+            road->length = length;
+            road->year = builtYear;
+            addToRoadList(cityA, newNodeA);
+            addToRoadList(cityB, newNodeB);
             return true;
         }
         else
@@ -164,16 +163,27 @@ makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear) // helper,
 
 City *makeNewCity(Map *map, const char *name) // helper
 {
-    CityList *where = findEmptySpotForCityList(map);
-    where->next = malloc(sizeof(CityList *));
-    if (where->next != NULL)
+    CityList *node, *where;
+    if (map->cities == NULL)
     {
-        where->next->this = malloc(sizeof(City));
-        if (where->next->this != NULL)
+        node = map->cities = malloc(sizeof(CityList));
+    }
+    else
+    {
+        where = findEmptySpotForCityList(map);
+        node = where->next = malloc(sizeof(CityList));
+    }
+
+    if (node != NULL)
+    {
+        node->this = malloc(sizeof(City));
+        node->next = NULL;
+        if (node->this != NULL)
         {
-            where->next->this->name = name; // TODO: will it even work?
-            where->next->this->roads = NULL;
-            return where->next->this; // TODO: first node has no this
+            node->this->name = name; // TODO: will it even work?
+            node->this->roads = NULL;
+
+            return node->this; // TODO: first node has no this
         }
         else
         {
@@ -186,10 +196,10 @@ City *makeNewCity(Map *map, const char *name) // helper
     }
 }
 
-CityList* findEmptySpotForCityList(Map *map)
+CityList *findEmptySpotForCityList(Map *map) // helper
 {
-    CityList* whereCity = map->cities;
-    CityList* act = map->cities;
+    CityList *whereCity = map->cities;
+    CityList *act = map->cities;
 
     while (act != NULL)
     {
@@ -201,60 +211,65 @@ CityList* findEmptySpotForCityList(Map *map)
 }
 
 bool addRoad(Map *map, const char *city1, const char *city2,
-	unsigned length, int builtYear) 
+             unsigned length, int builtYear)
 {
-	City* cityA = NULL;
-	City* cityB = NULL;
-	
-	if (strcmp(city1, city2) != 0) 
-	{
-		// different names, so it`s ok
-		cityA = findCity(map, city1);
-		cityB = findCity(map, city2);
-	}
-	else  
-	{
-		return false;
-	}
+    City *cityA = NULL;
+    City *cityB = NULL;
 
-	if (builtYear == 0)
-	{
-		return false;
-	}
-	
-	if (length < 0) 
-	{
-		/* this statement will probably never be true, but could be 
-		if type of length variable is ever changed */
-		return false;
-	}
-	
-	if (!isCorrectName(city1) || !isCorrectName(city2)) 
-	{
-		return false;
-	}
+    if (strcmp(city1, city2) != 0)
+    {
+        // different names, so it`s ok
+        cityA = findCity(map, city1);
+        cityB = findCity(map, city2);
+    }
+    else
+    {
+        return false;
+    }
 
-	if (cityA == NULL) 
-	{
-		cityA = makeNewCity(map, city1);
-		if (cityA == NULL)
-		{
+    if (builtYear == 0)
+    {
+        return false;
+    }
+
+    if (length < 0)
+    {
+        /* this statement will probably never be true, but could be
+        if type of length variable is ever changed */
+        return false;
+    }
+
+    if (!isCorrectName(city1) || !isCorrectName(city2))
+    {
+        return false;
+    }
+
+    if (findRoadBetweenCities(map, city1, city2) != NULL)
+    {
+        return false;
+    }
+
+    if (cityA == NULL)
+    {
+        cityA = makeNewCity(map, city1);
+        if (cityA == NULL)
+        {
             return false;
-		}
-	}
+        }
+    }
 
-	if (cityB == NULL)
-	{
-		cityB = makeNewCity(map, city2);
-	    if (cityB == NULL)
-	    {
+    if (cityB == NULL)
+    {
+        cityB = makeNewCity(map, city2);
+        if (cityB == NULL)
+        {
             return false;
-	    }
-	}
+        }
+    }
 
-	bool success = makeNewRoad(cityA, cityB, length, builtYear);
+    bool success = makeNewRoad(cityA, cityB, length, builtYear);
 
-	return success;
+    return success;
 }
 
 Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2)
@@ -306,4 +321,6 @@ bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
     {
         return false;
     }
+
+
 }
