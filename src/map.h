@@ -8,6 +8,11 @@
 
 #ifndef __MAP_H__
 #define __MAP_H__
+
+/**
+ * @brief Maksymalna ilość dróg krajowych.
+ * Wartość jest użyta w strukturze Map.
+ */
 #define HOW_MANY_ROUTES 1000
 
 #include <stdbool.h>

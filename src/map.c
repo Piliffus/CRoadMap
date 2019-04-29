@@ -2,10 +2,21 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
+/**
+ * @brief Struktura przechowująca informacje o mieście.
+ */
 struct City
 {
+    /**
+     * @brief Nazwa miasta.
+     */
     char *name;
+
+    /**
+     * @brief Lista łączona zawierająca odcinki drogowe incydentne do tego miasta.
+     */
     RoadList *roads;
 };
 
@@ -23,25 +34,51 @@ struct Road
     int year;
 };
 
+/**
+ *
+ */
 struct RoadList
 {
     Road *this;
     RoadList *next;
 };
 
-struct Route // 1 - 999
+/**
+ * @brief Struktura drogi krajowej.
+ */
+struct Route
 {
+    /**
+     * @brief Numer drogi krajowej. Musi zawierać się w przedziale [0, HOW_MANY_ROUTES].
+     */
     unsigned routeID;
+
+    /**
+     * @brief Tekstowy opis drogi.
+     */
     char howTheWayGoes[];
 };
 
-
+/**
+ * @brief Główna struktura zawierająca wskaźnik do listy miast i tablicy dróg krajowych.
+ * Inicjalizację i usuwanie struktury realizują odpowiednio funkcje newMap() i deleteMap(Map *).
+ */
 struct Map
 {
+    /**
+     * @brief Lista łączona zawierająca miasta.
+     */
     CityList *cities;
+
+    /**
+     * @brief Tablica dróg krajowych o stałym rozmiarze (HOW_MANY_ROUTES).
+     */
     Route *routes[HOW_MANY_ROUTES];
 };
 
+/**
+ * @brief Struktura pomocnicza
+ */
 struct Solution
 {
     unsigned totalLength;
@@ -50,16 +87,40 @@ struct Solution
 };
 typedef struct Solution Solution;
 
+/**
+ * @brief Znajduje na liście miast węzeł, do którego można dołączyć kolejny.
+ * @param map Mapa.
+ * @return Ostatni węzeł mapy, lub NULL jeśli mapa jest pusta.
+ */
 CityList *findEmptySpotForCityList(Map *map);
 
+/**
+ * @brief Dodaje nowy węzeł odcinka drogowego do listy odcinków w podanym mieście.
+ * @param whereRoad Miasto.
+ * @param addedRoad Węzeł listy odcinków drogowych.
+ */
 void addToRoadList(City *whereRoad, RoadList *addedRoad);
 
+/**
+ * @brief Wyszukuje
+ * @param map Mapa miast.
+ * @param city1 Miasto "z".
+ * @param city2 Miasto "do".
+ * @return Znaleziony odcinek drogi; NULL, jeśli nie istnieje.
+ */
 Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2);
 
 void recursionFindWay(City *start, City *finish, unsigned totalLength, int totalAge,
                       char goes[], Solution *solution);
 
-bool isOnTheArray(Road *pRoad, Road *remove[0], int ofRemove);
+/**
+ * Funkcja pomocnicza. Sprawdza, czy odcinek drogi znajduje się w podanej tablicy wskaźników.
+ * @param pRoad Poszukiwany odcinek drogowy.
+ * @param remove Tablica odcinków drogowych.
+ * @param ofRemove Rozmiar tablicy remove.
+ * @return true, jeśli odcinek znajduje się na liście, w przeciwnym wypadku false.
+ */
+bool isOnTheArray(Road *pRoad, Road *remove[], int ofRemove);
 
 Map *newMap(void)
 {
@@ -103,7 +164,7 @@ void deleteMap(Map *map)
                     sizeOfRemove++;
                     roadsToRemove = realloc(roadsToRemove,
                             sizeOfRemove * (sizeof(Road *)));
-                    roadsToRemove[sizeOfRemove] = actRoad->this;
+                    roadsToRemove[sizeOfRemove - 1] = actRoad->this;
                 }
                 RoadList *remove = actRoad;
                 actRoad = actRoad->next;
@@ -146,6 +207,7 @@ City *findCity(Map *map, const char *cityName)
     {
         // if current is not null then it must have `this`
 
+        printf("%s %s\n", cityName, current->this->name);
         if (strcmp(current->this->name, cityName) == 0)
         {
             return current->this;
@@ -204,9 +266,18 @@ void addToRoadList(City *whereRoad, RoadList *addedRoad)
         }
 
         previous->next = addedRoad;
+        addedRoad->next = NULL;
     }
 }
 
+/**
+ * @brief Tworzy nowy odcinek drogowy między podanymi miastami i dodaje go do list odcinków obydwu miast.
+ * @param cityA Pierwsze miasto.
+ * @param cityB Drugie miasto.
+ * @param length Długość odcinka.
+ * @param builtYear Rok wybudowania.
+ * @return false, jeśli nie udało się zaalokować pamięci; w przeciwnym wypadku true
+ */
 bool makeNewRoad(City *cityA, City *cityB, unsigned length,
                  int builtYear) // helper, true = ok, false error
 {
@@ -238,6 +309,12 @@ bool makeNewRoad(City *cityA, City *cityB, unsigned length,
     }
 }
 
+/**
+ * Tworzy miasto o zadanej nazwie i dodaje
+ * @param map
+ * @param name
+ * @return
+ */
 City *makeNewCity(Map *map, const char *name) // helper
 {
     CityList *node, *where;
@@ -257,6 +334,7 @@ City *makeNewCity(Map *map, const char *name) // helper
         node->next = NULL;
         if (node->this != NULL)
         {
+            node->this->name = malloc(sizeof(char) * 0);
             strcpy(node->this->name, name);
             node->this->roads = NULL;
 
