@@ -9,41 +9,31 @@
 #ifndef __MAP_H__
 #define __MAP_H__
 
-/**
- * @brief Maksymalna ilość dróg krajowych.
- * Wartość jest użyta w strukturze Map.
- */
-#define HOW_MANY_ROUTES 1000
-
 #include <stdbool.h>
 /**
   * Struktura przechowująca informacje o mieście.
   */
-typedef struct City City; // mine DONE
-
-typedef struct Route Route;
-typedef struct RouteCity RouteCity;
-typedef struct RouteRoad RouteRoad;
+typedef struct City City;
 
 /**
   * Lista przechowująca miasta.
   */
-typedef struct CityList CityList; // mine DONE
+typedef struct CityList CityList;
 
 /**
    * Struktura przechowująca informacje o drodze.
    */
-typedef struct Road Road; // mine DONE
+typedef struct Road Road;
 
 /**
    * Lista przechowująca drogi.
    */
-typedef struct RoadList RoadList; // mine DONE
+typedef struct RoadList RoadList;
 
 /**
  * Struktura przechowująca mapę dróg krajowych.
  */
-typedef struct Map Map; // DONE
+typedef struct Map Map;
 
 /** @brief Tworzy nową strukturę.
  * Tworzy nową, pustą strukturę niezawierającą żadnych miast, odcinków dróg ani
@@ -51,14 +41,14 @@ typedef struct Map Map; // DONE
  * @return Wskaźnik na utworzoną strukturę lub NULL, gdy nie udało się
  * zaalokować pamięci.
  */
-Map* newMap(void); // DONE
+Map* newMap(void);
 
 /** @brief Usuwa strukturę.
  * Usuwa strukturę wskazywaną przez @p map.
  * Nic nie robi, jeśli wskaźnik ten ma wartość NULL.
  * @param[in] map        – wskaźnik na usuwaną strukturę.
  */
-void deleteMap(Map *map); // DONE
+void deleteMap(Map *map);
 
 /** @brief Dodaje do mapy odcinek drogi między dwoma różnymi miastami.
  * Jeśli któreś z podanych miast nie istnieje, to dodaje go do mapy, a następnie

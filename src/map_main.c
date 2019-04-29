@@ -9,7 +9,7 @@
 
 int main() 
 {
-  char const* str;
+  //char const* str;
 
   Map* m = newMap();
   assert(m);

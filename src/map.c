@@ -4,9 +4,11 @@
 #include <string.h>
 #include <stdio.h>
 
+#define UNUSED(v) ((void)(v))
+
 /**
- * @brief Struktura przechowująca informacje o mieście.
- */
+   * Struktura przechowująca informacje o mieście.
+   */
 struct City
 {
     /**
@@ -20,43 +22,62 @@ struct City
     RoadList *roads;
 };
 
+/**
+ * Węzeł łączonej listy miast.
+ */
 struct CityList
 {
+    /**
+     * Miasto, na które wskazuje aktualny węzeł.
+     */
     City *this;
+
+    /**
+     * Następny węzeł na liście.
+     */
     CityList *next;
 };
 
+/**
+   * Struktura przechowująca informacje o drodze.
+   */
 struct Road
 {
+    /**
+     * @brief Pierwszy koniec odcinka.
+     */
     City *cityA;
+
+    /**
+     * @brief Drugi koniec odcinka.
+     */
     City *cityB;
+
+    /**
+     * @brief Długość odcinka.
+     */
     unsigned length;
+
+    /**
+     * @brief Rok budowy lub ostatniego remontu.
+     */
     int year;
 };
 
 /**
- *
+ * Węzeł listy odcinków drogowych dla pojedynczego miasta.
  */
 struct RoadList
 {
+    /**
+     * Wskazywany odcinek.
+     */
     Road *this;
+
+    /**
+     * Następny węzeł.
+     */
     RoadList *next;
-};
-
-/**
- * @brief Struktura drogi krajowej.
- */
-struct Route
-{
-    /**
-     * @brief Numer drogi krajowej. Musi zawierać się w przedziale [0, HOW_MANY_ROUTES].
-     */
-    unsigned routeID;
-
-    /**
-     * @brief Tekstowy opis drogi.
-     */
-    char howTheWayGoes[];
 };
 
 /**
@@ -69,58 +90,46 @@ struct Map
      * @brief Lista łączona zawierająca miasta.
      */
     CityList *cities;
-
-    /**
-     * @brief Tablica dróg krajowych o stałym rozmiarze (HOW_MANY_ROUTES).
-     */
-    Route *routes[HOW_MANY_ROUTES];
 };
-
-/**
- * @brief Struktura pomocnicza
- */
-struct Solution
-{
-    unsigned totalLength;
-    int totalAge;
-    char howTheWayGoes[];
-};
-typedef struct Solution Solution;
 
 /**
  * @brief Znajduje na liście miast węzeł, do którego można dołączyć kolejny.
- * @param map Mapa.
+ * @param map -- struktura mapy
  * @return Ostatni węzeł mapy, lub NULL jeśli mapa jest pusta.
  */
 CityList *findEmptySpotForCityList(Map *map);
 
 /**
  * @brief Dodaje nowy węzeł odcinka drogowego do listy odcinków w podanym mieście.
- * @param whereRoad Miasto.
- * @param addedRoad Węzeł listy odcinków drogowych.
+ * @param whereRoad -- miasto
+ * @param addedRoad -- węzeł listy odcinków drogowych
  */
 void addToRoadList(City *whereRoad, RoadList *addedRoad);
 
 /**
- * @brief Wyszukuje
- * @param map Mapa miast.
- * @param city1 Miasto "z".
- * @param city2 Miasto "do".
+ * @brief Wyszukuje odcinek drogi między dwoma podanymi miastami.
+ * @param map -- struktura mapy
+ * @param city1 -- miasto "z"
+ * @param city2 -- miasto "do"
  * @return Znaleziony odcinek drogi; NULL, jeśli nie istnieje.
  */
 Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2);
 
-void recursionFindWay(City *start, City *finish, unsigned totalLength, int totalAge,
-                      char goes[], Solution *solution);
-
 /**
  * Funkcja pomocnicza. Sprawdza, czy odcinek drogi znajduje się w podanej tablicy wskaźników.
- * @param pRoad Poszukiwany odcinek drogowy.
- * @param remove Tablica odcinków drogowych.
- * @param ofRemove Rozmiar tablicy remove.
+ * @param pRoad -- poszukiwany odcinek drogowy
+ * @param remove -- tablica odcinków drogowych
+ * @param ofRemove -- rozmiar tablicy remove
  * @return true, jeśli odcinek znajduje się na liście, w przeciwnym wypadku false.
  */
 bool isOnTheArray(Road *pRoad, Road *remove[], int ofRemove);
+
+/**
+ * @brief Usuwa odcinek drogowy z listy odcinków danego miasta.
+ * @param pRoad -- wskaznik na usuwany odcinek drogi
+ * @param pCity -- wskaznik na miasto z którego listy usuwamy odcinek drogi
+ */
+void removeFromRoadList(Road *pRoad, City *pCity);
 
 Map *newMap(void)
 {
@@ -129,11 +138,6 @@ Map *newMap(void)
     if (newMap != NULL)
     {
         newMap->cities = NULL;
-        int i = 0;
-        for (; i < HOW_MANY_ROUTES; i++)
-        {
-            newMap->routes[i] = NULL;
-        }
     }
 
     return newMap;
@@ -146,12 +150,6 @@ void deleteMap(Map *map)
 
     if (map != NULL)
     {
-        int i = 0;
-        for (; i < HOW_MANY_ROUTES; i++)
-        {
-            free(map->routes[i]); // remove Route
-        }
-
         CityList *act = map->cities;
         while (act != NULL)
         {
@@ -170,6 +168,7 @@ void deleteMap(Map *map)
                 actRoad = actRoad->next;
                 free(remove); // remove RoadList
             }
+            free(act->this->name);
             free(act->this); // remove City
             CityList *removeAct = act;
             act = act->next;
@@ -181,6 +180,7 @@ void deleteMap(Map *map)
         {
             free(roadsToRemove[j]); // remove road
         }
+        free(roadsToRemove);
 
         free(map);
     }
@@ -206,8 +206,6 @@ City *findCity(Map *map, const char *cityName)
     while (current != NULL)
     {
         // if current is not null then it must have `this`
-
-        printf("%s %s\n", cityName, current->this->name);
         if (strcmp(current->this->name, cityName) == 0)
         {
             return current->this;
@@ -279,77 +277,16 @@ void addToRoadList(City *whereRoad, RoadList *addedRoad)
  * @return false, jeśli nie udało się zaalokować pamięci; w przeciwnym wypadku true
  */
 bool makeNewRoad(City *cityA, City *cityB, unsigned length,
-                 int builtYear) // helper, true = ok, false error
-{
-    RoadList *newNodeA = malloc(sizeof(RoadList));
-    RoadList *newNodeB = malloc(sizeof(RoadList));
-    Road *road;
-    if (newNodeA != NULL && newNodeB != NULL)
-    {
-        newNodeA->next = newNodeB->next = NULL;
-        road = newNodeA->this = newNodeB->this = malloc(sizeof(Road));
-        if (newNodeA->this != NULL)
-        {
-            road->cityA = cityA;
-            road->cityB = cityB;
-            road->length = length;
-            road->year = builtYear;
-            addToRoadList(cityA, newNodeA);
-            addToRoadList(cityB, newNodeB);
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    else
-    {
-        return false;
-    }
-}
+                 int builtYear);
 
 /**
- * Tworzy miasto o zadanej nazwie i dodaje
- * @param map
- * @param name
- * @return
+ * @brief Tworzy miasto o zadanej nazwie i dodaje je do mapy.
+ * Funkcja pomocnicza.
+ * @param map -- wskaźnik na mapę
+ * @param name -- łańcuch znaków zawierający nazwę miasta
+ * @return Wskaźnik do utworzonej struktury miasta.
  */
-City *makeNewCity(Map *map, const char *name) // helper
-{
-    CityList *node, *where;
-    if (map->cities == NULL)
-    {
-        node = map->cities = malloc(sizeof(CityList));
-    }
-    else
-    {
-        where = findEmptySpotForCityList(map);
-        node = where->next = malloc(sizeof(CityList));
-    }
-
-    if (node != NULL)
-    {
-        node->this = malloc(sizeof(City));
-        node->next = NULL;
-        if (node->this != NULL)
-        {
-            node->this->name = malloc(sizeof(char) * 0);
-            strcpy(node->this->name, name);
-            node->this->roads = NULL;
-
-            return node->this; // first node has no this
-        }
-        else
-        {
-            return NULL;
-        }
-    }
-    else
-    {
-        return NULL;
-    }
-}
+City *makeNewCity(Map *map, const char *name);
 
 CityList *findEmptySpotForCityList(Map *map) // helper
 {
@@ -384,13 +321,6 @@ bool addRoad(Map *map, const char *city1, const char *city2,
 
     if (builtYear == 0)
     {
-        return false;
-    }
-
-    if (length < 0)
-    {
-        /* this statement will probably never be true, but could be
-        if type of length variable is ever changed */
         return false;
     }
 
@@ -454,6 +384,117 @@ Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2)
     return NULL;
 }
 
+bool removeRoad(Map *map, const char *city1, const char *city2)
+{
+    Road *road = findRoadBetweenCities(map, city1, city2);
+    if (road == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        City *cityA = road->cityA;
+        City *cityB = road->cityB;
+        removeFromRoadList(road, cityA);
+        removeFromRoadList(road, cityB);
+        free(road);
+        return true;
+    }
+}
+
+void removeFromRoadList(Road *pRoad, City *pCity)
+{
+    if (pCity->roads->this == pRoad)
+    {
+        RoadList *removed = pCity->roads;
+        pCity->roads = pCity->roads->next;
+        free(removed);
+    }
+    else
+    {
+        RoadList *act = pCity->roads->next;
+        RoadList *previous = pCity->roads;
+        while (act->this != pRoad)
+        {
+            previous = act;
+            act = act->next;
+        }
+        previous->next = act->next;
+        free(act);
+    }
+}
+
+City *makeNewCity(Map *map, const char *name)
+{
+    CityList *node, *where;
+    if (map->cities == NULL)
+    {
+        node = map->cities = malloc(sizeof(CityList));
+    }
+    else
+    {
+        where = findEmptySpotForCityList(map);
+        node = where->next = malloc(sizeof(CityList));
+    }
+
+    if (node != NULL)
+    {
+        node->this = malloc(sizeof(City));
+        node->next = NULL;
+        if (node->this != NULL)
+        {
+            node->this->name = malloc(sizeof(char) * (strlen(name) + 1));
+            if (node->this->name == NULL)
+            {
+                free(node->this);
+                return NULL;
+            }
+            strcpy(node->this->name, name);
+            node->this->roads = NULL;
+
+            return node->this; // first node has no this
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+    else
+    {
+        return NULL;
+    }
+}
+
+bool makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear) // helper, true = ok, false error
+{
+    RoadList *newNodeA = malloc(sizeof(RoadList));
+    RoadList *newNodeB = malloc(sizeof(RoadList));
+    Road *road;
+    if (newNodeA != NULL && newNodeB != NULL)
+    {
+        newNodeA->next = newNodeB->next = NULL;
+        road = newNodeA->this = newNodeB->this = malloc(sizeof(Road));
+        if (newNodeA->this != NULL)
+        {
+            road->cityA = cityA;
+            road->cityB = cityB;
+            road->length = length;
+            road->year = builtYear;
+            addToRoadList(cityA, newNodeA);
+            addToRoadList(cityB, newNodeB);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+}
+
 bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
 {
     if (!isCorrectName(city1) || !isCorrectName(city2))
@@ -478,135 +519,29 @@ bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
     }
 }
 
-void recursionFindWay(City *start, City *finish, unsigned totalLength, int totalAge,
-                      char goes[], Solution *solution)
-{
-    strcat(goes, start->name);
-
-    if (start != finish)
-    {
-        RoadList *act = start->roads;
-
-        while (act != NULL)
-        {
-            char split[] = "placeholder";
-            strcpy(split, goes);
-            strcat(split, act->this->length);
-            strcat(split, act->this->year);
-            recursionFindWay(act->this->cityA == start ?
-                             act->this->cityB : act->this->cityA, finish,
-                             totalLength + act->this->length,
-                             totalAge + act->this->year, split, solution);
-        }
-    }
-    else // we found it
-    {
-        if (solution == NULL)
-        {
-            solution = malloc(sizeof(struct Solution));
-            if (solution != NULL)
-            {
-                solution->totalAge = totalAge;
-                solution->totalLength = totalLength;
-                strcpy(solution->howTheWayGoes, goes);
-            }
-            else
-            {
-                return;
-            }
-        }
-        else // we will decide which solution is better
-        {
-            if (solution->totalLength < totalLength)
-            {
-                return;
-            }
-            else if (solution->totalLength == totalLength)
-            {
-                if (solution->totalAge > totalAge)
-                {
-                    free(solution);
-                    solution = malloc(sizeof(struct Solution));
-                    if (solution != NULL)
-                    {
-                        solution->totalAge = totalAge;
-                        solution->totalLength = totalLength;
-                        strcpy(solution->howTheWayGoes, goes);
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    return;
-                }
-            }
-            else // solution->totalLength > totalLength
-            {
-                free(solution);
-                solution = malloc(sizeof(struct Solution));
-                if (solution != NULL)
-                {
-                    solution->totalAge = totalAge;
-                    solution->totalLength = totalLength;
-                    strcpy(solution->howTheWayGoes, goes);
-                }
-                else
-                {
-                    return;
-                }
-            }
-        }
-    }
-}
-
 bool newRoute(Map *map, unsigned routeId, const char *city1, const char *city2)
 {
-    if (routeId > 999 || routeId < 1)
-    {
-        return false;
-    }
+    UNUSED(map);
+    UNUSED(routeId);
+    UNUSED(city1);
+    UNUSED(city2);
 
-    City *cityA = findCity(map, city1);
-    City *cityB = findCity(map, city2);
+    return false;
+}
 
-    if (cityA == NULL || cityB == NULL)
-    {
-        return false;
-    }
+bool extendRoute(Map *map, unsigned routeId, const char *city)
+{
+    UNUSED(map);
+    UNUSED(routeId);
+    UNUSED(city);
 
-    if (map->routes[routeId] == NULL)
-    {
-        map->routes[routeId] = malloc(sizeof(Route));
-        if (map->routes[routeId] != NULL)
-        {
-            map->routes[routeId]->routeID = routeId;
-                int totalLength = 0;
-                int totalAge = 0;
-                char howRouteGoes[] = "";
-                Solution *solution = NULL;
-                recursionFindWay(cityA, cityB, totalLength, totalAge, howRouteGoes, solution);
-                if (solution != NULL)
-                {
-                    strcpy(solution->howTheWayGoes, map->routes[routeId]->howTheWayGoes);
-                }
-                else //there is no way there
-                {
-                    free(map->routes[routeId]);
-                    map->routes[routeId] = NULL;
-                    return false;
-                }
+    return false;
+}
 
-        }
-        else
-        {
-            return false;
-        }
-    }
-    else
-    {
-        return false;
-    }
+char const* getRouteDescription(Map *map, unsigned routeId)
+{
+    UNUSED(map);
+    UNUSED(routeId);
+
+    return false;
 }
