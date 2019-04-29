@@ -8,12 +8,17 @@
 
 #ifndef __MAP_H__
 #define __MAP_H__
+#define HOW_MANY_ROUTES 1000
 
 #include <stdbool.h>
 /**
   * Struktura przechowująca informacje o mieście.
   */
 typedef struct City City; // mine DONE
+
+typedef struct Route Route;
+typedef struct RouteCity RouteCity;
+typedef struct RouteRoad RouteRoad;
 
 /**
   * Lista przechowująca miasta.

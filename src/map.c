@@ -29,16 +29,37 @@ struct RoadList
     RoadList *next;
 };
 
+struct Route // 1 - 999
+{
+    unsigned routeID;
+    char howTheWayGoes[];
+};
+
+
 struct Map
 {
     CityList *cities;
+    Route *routes[HOW_MANY_ROUTES];
 };
+
+struct Solution
+{
+    unsigned totalLength;
+    int totalAge;
+    char howTheWayGoes[];
+};
+typedef struct Solution Solution;
 
 CityList *findEmptySpotForCityList(Map *map);
 
-bool addToRoadList(City *whereRoad, RoadList *whatRoad);
+void addToRoadList(City *whereRoad, RoadList *addedRoad);
 
 Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2);
+
+void recursionFindWay(City *start, City *finish, unsigned totalLength, int totalAge,
+                      char goes[], Solution *solution);
+
+bool isOnTheArray(Road *pRoad, Road *remove[0], int ofRemove);
 
 Map *newMap(void)
 {
@@ -47,6 +68,11 @@ Map *newMap(void)
     if (newMap != NULL)
     {
         newMap->cities = NULL;
+        int i = 0;
+        for (; i < HOW_MANY_ROUTES; i++)
+        {
+            newMap->routes[i] = NULL;
+        }
     }
 
     return newMap;
@@ -54,11 +80,62 @@ Map *newMap(void)
 
 void deleteMap(Map *map)
 {
+    Road **roadsToRemove = malloc(sizeof(Road*) * 0);
+    int sizeOfRemove = 0;
+
     if (map != NULL)
     {
-        // TODO: fix memory leak here, as soon as lists are added
+        int i = 0;
+        for (; i < HOW_MANY_ROUTES; i++)
+        {
+            free(map->routes[i]); // remove Route
+        }
+
+        CityList *act = map->cities;
+        while (act != NULL)
+        {
+            RoadList *actRoad = act->this->roads;
+            while (actRoad != NULL)
+            {
+                if (!isOnTheArray(actRoad->this, roadsToRemove, sizeOfRemove))
+                {
+                    // remember to remove this road later
+                    sizeOfRemove++;
+                    roadsToRemove = realloc(roadsToRemove,
+                            sizeOfRemove * (sizeof(Road *)));
+                    roadsToRemove[sizeOfRemove] = actRoad->this;
+                }
+                RoadList *remove = actRoad;
+                actRoad = actRoad->next;
+                free(remove); // remove RoadList
+            }
+            free(act->this); // remove City
+            CityList *removeAct = act;
+            act = act->next;
+            free(removeAct); // remove CityList
+        }
+
+        int j = 0;
+        for (; j < sizeOfRemove; j++)
+        {
+            free(roadsToRemove[j]); // remove road
+        }
+
         free(map);
     }
+}
+
+bool isOnTheArray(Road *pRoad, Road *remove[], int ofRemove) // helper
+{
+    int i = 0;
+    for(; i < ofRemove; i++)
+    {
+        if (remove[i] == pRoad)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 City *findCity(Map *map, const char *cityName)
@@ -108,7 +185,7 @@ bool isCorrectName(const char *name)  // helper
     return true;
 }
 
-bool addToRoadList(City *whereRoad, RoadList *addedRoad)
+void addToRoadList(City *whereRoad, RoadList *addedRoad)
 {
     RoadList *current = whereRoad->roads;
 
@@ -180,10 +257,10 @@ City *makeNewCity(Map *map, const char *name) // helper
         node->next = NULL;
         if (node->this != NULL)
         {
-            node->this->name = name; // TODO: will it even work?
+            strcpy(node->this->name, name);
             node->this->roads = NULL;
 
-            return node->this; // TODO: first node has no this
+            return node->this; // first node has no this
         }
         else
         {
@@ -321,6 +398,137 @@ bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
     {
         return false;
     }
+}
 
+void recursionFindWay(City *start, City *finish, unsigned totalLength, int totalAge,
+                      char goes[], Solution *solution)
+{
+    strcat(goes, start->name);
 
+    if (start != finish)
+    {
+        RoadList *act = start->roads;
+
+        while (act != NULL)
+        {
+            char split[] = "placeholder";
+            strcpy(split, goes);
+            strcat(split, act->this->length);
+            strcat(split, act->this->year);
+            recursionFindWay(act->this->cityA == start ?
+                             act->this->cityB : act->this->cityA, finish,
+                             totalLength + act->this->length,
+                             totalAge + act->this->year, split, solution);
+        }
+    }
+    else // we found it
+    {
+        if (solution == NULL)
+        {
+            solution = malloc(sizeof(struct Solution));
+            if (solution != NULL)
+            {
+                solution->totalAge = totalAge;
+                solution->totalLength = totalLength;
+                strcpy(solution->howTheWayGoes, goes);
+            }
+            else
+            {
+                return;
+            }
+        }
+        else // we will decide which solution is better
+        {
+            if (solution->totalLength < totalLength)
+            {
+                return;
+            }
+            else if (solution->totalLength == totalLength)
+            {
+                if (solution->totalAge > totalAge)
+                {
+                    free(solution);
+                    solution = malloc(sizeof(struct Solution));
+                    if (solution != NULL)
+                    {
+                        solution->totalAge = totalAge;
+                        solution->totalLength = totalLength;
+                        strcpy(solution->howTheWayGoes, goes);
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else // solution->totalLength > totalLength
+            {
+                free(solution);
+                solution = malloc(sizeof(struct Solution));
+                if (solution != NULL)
+                {
+                    solution->totalAge = totalAge;
+                    solution->totalLength = totalLength;
+                    strcpy(solution->howTheWayGoes, goes);
+                }
+                else
+                {
+                    return;
+                }
+            }
+        }
+    }
+}
+
+bool newRoute(Map *map, unsigned routeId, const char *city1, const char *city2)
+{
+    if (routeId > 999 || routeId < 1)
+    {
+        return false;
+    }
+
+    City *cityA = findCity(map, city1);
+    City *cityB = findCity(map, city2);
+
+    if (cityA == NULL || cityB == NULL)
+    {
+        return false;
+    }
+
+    if (map->routes[routeId] == NULL)
+    {
+        map->routes[routeId] = malloc(sizeof(Route));
+        if (map->routes[routeId] != NULL)
+        {
+            map->routes[routeId]->routeID = routeId;
+                int totalLength = 0;
+                int totalAge = 0;
+                char howRouteGoes[] = "";
+                Solution *solution = NULL;
+                recursionFindWay(cityA, cityB, totalLength, totalAge, howRouteGoes, solution);
+                if (solution != NULL)
+                {
+                    strcpy(solution->howTheWayGoes, map->routes[routeId]->howTheWayGoes);
+                }
+                else //there is no way there
+                {
+                    free(map->routes[routeId]);
+                    map->routes[routeId] = NULL;
+                    return false;
+                }
+
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
 }
