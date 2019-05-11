@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <math.h>
 
 #define UNUSED(v) ((void)(v))
 
@@ -98,22 +97,6 @@ struct RoadList
 };
 
 /**
- * @brief Główna struktura zawierająca wskaźnik do listy miast i tablicy dróg krajowych.
- * Inicjalizację i usuwanie struktury realizują odpowiednio funkcje newMap() i deleteMap(Map *).
- */
-struct Map
-{
-    /**
-     * @brief Lista łączona zawierająca miasta.
-     */
-    CityList *cities;
-    /**
-     * @brief Tablica zawierająca drogi krajowe
-     */
-    Route routes[ROUTES_AMOUNT];
-};
-
-/**
  * @brief Struktura reprezentująca pojedynczą drógę krajową.
  */
 struct Route
@@ -132,6 +115,22 @@ struct Route
      * @brief Informacja przez ile miast prowadzi droga krajowa
      */
     unsigned length;
+};
+
+/**
+ * @brief Główna struktura zawierająca wskaźnik do listy miast i tablicy dróg krajowych.
+ * Inicjalizację i usuwanie struktury realizują odpowiednio funkcje newMap() i deleteMap(Map *).
+ */
+struct Map
+{
+    /**
+     * @brief Lista łączona zawierająca miasta.
+     */
+    CityList *cities;
+    /**
+     * @brief Tablica zawierająca drogi krajowe
+     */
+    Route *routes[ROUTES_AMOUNT];
 };
 
 /**
@@ -428,11 +427,11 @@ Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2)
     return NULL;
 }
 
-bool hasCity(Route route, City *cityA, City *cityB)
+bool hasCity(Route *route, City *cityA, City *cityB)
 {
-    for (unsigned i = 0; i < route.length; i++)
+    for (unsigned i = 0; i < route->length; i++)
     {
-        if (route.howTheWayGoes[i] == cityA || route.howTheWayGoes[i] == cityB)
+        if (route->howTheWayGoes[i] == cityA || route->howTheWayGoes[i] == cityB)
         {
             return true;
         }
@@ -458,9 +457,9 @@ bool checkRoutesAfterRoadRemoval(Map *map, City *cityA, City *cityB)
         if (hasCity(map->routes[j], cityA, cityB))
         {
             potentialNewRoutes[j] = dkstra(map, j,
-                                           map->routes[j].howTheWayGoes[0],
-                                           map->routes[j].howTheWayGoes[
-                                                   map->routes[j].length - 1]);
+                                           map->routes[j]->howTheWayGoes[0],
+                                           map->routes[j]->howTheWayGoes[
+                                                   map->routes[j]->length - 1]);
             if (potentialNewRoutes[j] == NULL) return false;
         }
     }
@@ -695,6 +694,16 @@ bool thereAreUnvisitedNodes(Map *map)
     return false;
 }
 
+void reverseArray(City **array, unsigned length)
+{
+    for (unsigned i = 0; i < (length / 2); i++)
+    {
+        City *helper = array[length-1-i];
+        array[length-1-i] = array[i];
+        array[i] = helper;
+    }
+}
+
 Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
 {
     CityList *akt = map->cities;
@@ -707,8 +716,19 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
         akt = akt->next;
     }
 
+    if (map->routes[routeId] != NULL)
+    {
+        // if we are extending an already existing route, then we must make sure
+        // it doesn`t cross itself
+        for(unsigned i = 0; i < map->routes[routeId]->length; i++)
+        {
+            map->routes[routeId]->howTheWayGoes[i]->visited = true;
+        }
+    }
+
     // distance is 0 for starting node
     start->distance = 0;
+    start->visited = false;
 
     while (thereAreUnvisitedNodes(map))
     {
@@ -761,9 +781,10 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
             free(newRoute);
             return NULL;
         }
-        newRoute->howTheWayGoes[newRoute->length - 1] = act; // TODO: age compare and reverse array
+        newRoute->howTheWayGoes[newRoute->length - 1] = act; // TODO: age compare
     }
 
+    reverseArray(newRoute->howTheWayGoes, newRoute->length);
     return newRoute;
 }
 
@@ -794,6 +815,8 @@ bool extendRoute(Map *map, unsigned routeId, const char *city)
 
     unsigned oldLength = oldRoute->length;
     oldRoute->length += newPart->length;
+    oldRoute->length--; // length is 1 more than last index, so if we add two
+    // lengths to each other then the result will be 2 bigger, so we compensate
 
     for (unsigned i = 0; i < newPart->length; i++)
     {
@@ -805,10 +828,66 @@ bool extendRoute(Map *map, unsigned routeId, const char *city)
     return true;
 }
 
-char const* getRouteDescription(Map *map, unsigned routeId)
+Road *findRoadBetween(City *start, City *finish)
 {
-    UNUSED(map);
-    UNUSED(routeId);
+    for (RoadList *act = start->roads; act != NULL ; act = act->next)
+    {
+        if (act->this->cityA == finish || act->this->cityB == finish)
+        {
+            return act->this;
+        }
+    }
 
-    return false;
+    return NULL;
+}
+
+char const *getRouteDescription(Map *map, unsigned routeId)
+{
+    if (map->routes[routeId] == NULL) return "";
+
+    char *returnedString = malloc(sizeof(char) * CHAR_BUFFER);
+    int lastChar = sprintf(returnedString, "%u;", routeId);
+    if (lastChar < 0)
+    {
+        free(returnedString);
+        return "";
+    }
+
+    unsigned i = 0;
+    for (; i < map->routes[routeId]->length - 1; i++)
+    {
+        int success = sprintf(returnedString + lastChar, "%s;",
+                              map->routes[routeId]->howTheWayGoes[i]->name);
+        if (success < 0)
+        {
+            free(returnedString);
+            return "";
+        }
+        lastChar += success;
+
+        City *destination = map->routes[routeId]->howTheWayGoes[i + 1];
+        Road *road = findRoadBetween(map->routes[routeId]->howTheWayGoes[i],
+                                     destination);
+        success = sprintf(returnedString + lastChar, "%u;%d;", road->length,
+                          road->year);
+        if (success < 0)
+        {
+            free(returnedString);
+            return "";
+        }
+        lastChar += success;
+
+    }
+
+    // we do this outside of loop because we don`t want ';'
+    // nor want to overflow with howTheWayGoes[i + 1]
+
+    int success = sprintf(returnedString + lastChar, "%s",
+                          map->routes[routeId]->howTheWayGoes[i]->name);
+    if (success < 0)
+    {
+        free(returnedString);
+        return "";
+    }
+    return returnedString;
 }

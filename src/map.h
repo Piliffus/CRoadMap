@@ -13,7 +13,8 @@
 #include <limits.h>
 
 #define ROUTES_AMOUNT 1000
-#define INFINITY INT_MAX
+#define INFINITY UINT_MAX
+#define CHAR_BUFFER 1240
 
 /**
   * Struktura przechowująca informacje o mieście.
@@ -36,14 +37,14 @@ typedef struct Road Road;
 typedef struct RoadList RoadList;
 
 /**
+ * Struktura przechowująca drogę krajową.
+ */
+typedef struct Route Route;
+
+/**
  * Struktura przechowująca mapę dróg krajowych.
  */
 typedef struct Map Map;
-
-/**
- * Struktura przechowująca drogę krajową.
- */
- typedef struct Route Route;
 
 /** @brief Tworzy nową strukturę.
  * Tworzy nową, pustą strukturę niezawierającą żadnych miast, odcinków dróg ani
