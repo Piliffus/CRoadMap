@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <math.h>
 
 #define UNUSED(v) ((void)(v))
 
@@ -20,6 +21,21 @@ struct City
      * @brief Lista łączona zawierająca odcinki drogowe incydentne do tego miasta.
      */
     RoadList *roads;
+
+    /**
+     * bbhib
+     */
+    unsigned distance;
+
+    /**
+     * bbhib
+     */
+    bool visited;
+
+    /**
+    * bbhib
+    */
+    City* previous;
 };
 
 /**
@@ -36,6 +52,7 @@ struct CityList
      * Następny węzeł na liście.
      */
     CityList *next;
+
 };
 
 /**
@@ -90,6 +107,31 @@ struct Map
      * @brief Lista łączona zawierająca miasta.
      */
     CityList *cities;
+    /**
+     * @brief Tablica zawierająca drogi krajowe
+     */
+    Route routes[ROUTES_AMOUNT];
+};
+
+/**
+ * @brief Struktura reprezentująca pojedynczą drógę krajową.
+ */
+struct Route
+{
+    /**
+    * @brief Tablica wskaznikow na kolejne miasta drogi krajowej.
+    */
+    City **howTheWayGoes;
+
+    /**
+    * @brief Tablica wskaznikow na kolejne miasta.
+    */
+    unsigned routeId;
+
+    /**
+     * @brief Informacja przez ile miast prowadzi droga krajowa
+     */
+    unsigned length;
 };
 
 /**
@@ -287,6 +329,8 @@ bool makeNewRoad(City *cityA, City *cityB, unsigned length,
  * @return Wskaźnik do utworzonej struktury miasta.
  */
 City *makeNewCity(Map *map, const char *name);
+
+Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish);
 
 CityList *findEmptySpotForCityList(Map *map) // helper
 {
@@ -521,12 +565,147 @@ bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
 
 bool newRoute(Map *map, unsigned routeId, const char *city1, const char *city2)
 {
-    UNUSED(map);
-    UNUSED(routeId);
-    UNUSED(city1);
-    UNUSED(city2);
+    if (routeId > 999 || routeId < 1)
+    {
+        return false;
+    }
+    if (map->routes[routeId] != NULL)
+    {
+        return false;
+    }
+
+    City *start = findCity(map, city1);
+    City *finish = findCity(map, city2);
+
+    if (start == NULL || finish == NULL)
+    {
+        return false;
+    }
+
+    map->routes[routeId] = malloc(sizeof(Route));
+
+    if (map->routes[routeId] == NULL)
+    {
+        return false;
+    }
+
+    Route *newRoute = dkstra(map, routeId, start, finish);
+
+    if (newRoute == NULL)
+    {
+        return false;
+    }
+    else
+    {
+        map->routes[routeId] = newRoute;
+        return true;
+    }
+}
+
+City *lowestDistanceNode(Map *map)
+{
+    unsigned lowestDistance = INFINITY;
+    City *lowestNode = NULL;
+
+    for (CityList* act = map->cities; act != NULL; act=act->next)
+    {
+        if (!act->this->visited)
+        {
+            if (act->this->distance < lowestDistance)
+            {
+                lowestDistance = act->this->distance;
+                lowestNode = act->this;
+            }
+        }
+    }
+
+    // if lowest distance is INFINTY then return NULL
+    return lowestNode;
+}
+
+bool thereAreUnvisitedNodes(Map *map)
+{
+    for (CityList* act = map->cities; act != NULL; act=act->next)
+    {
+        if (!act->this->visited)
+        {
+            return true;
+        }
+    }
 
     return false;
+}
+
+Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
+{
+    CityList *akt = map->cities;
+    while (akt != NULL)
+    {
+        // we make set of unvisited nodes
+        akt->this->distance = INFINITY;
+        akt->this->visited = false;
+        akt->this->previous = NULL;
+        akt = akt->next;
+    }
+
+    // distance is 0 for starting node
+    start->distance = 0;
+
+    while (thereAreUnvisitedNodes(map))
+    {
+        City *actCity = lowestDistanceNode(map);
+        if (actCity == NULL) return NULL; // no path from start to finish
+        actCity->visited = true; // remove node from unvisited set
+        if (actCity == finish) break; // we found the way so we are done
+
+        for (RoadList *actRoad = actCity->roads;
+             actRoad != NULL; actRoad = actRoad->next) // check each neighbour
+        {
+            City *neighbour =
+                    actRoad->this->cityA == actCity ? actRoad->this->cityB
+                                                    : actRoad->this->cityA;
+
+            if (!neighbour->visited) // only check unvisited nodes
+            {
+                unsigned newDistance =
+                        actCity->distance + actRoad->this->length;
+                if (newDistance < neighbour->distance)
+                {
+                    neighbour->distance = newDistance;
+                    neighbour->previous = actCity;
+                }
+            }
+        }
+    }
+
+    // there is no path; if it`s not NULL then there must be some way from
+    // start to finish, because otherwise it would not be assigned
+    if (finish->previous == NULL) return NULL;
+
+    // we must now make new route out of our shortest path
+    Route *newRoute = malloc(sizeof(Route));
+    if (newRoute == NULL) return NULL;
+    newRoute->routeId = routeId;
+    newRoute->length = 0;
+
+    newRoute->howTheWayGoes = malloc(sizeof(City *) * newRoute->length);
+
+    for (City *act = finish; act != NULL; act = act->previous)
+    {
+        newRoute->length++;
+        City **failInsurance = newRoute->howTheWayGoes; // in case realloc fails
+        newRoute->howTheWayGoes = realloc(newRoute->howTheWayGoes,
+                                          sizeof(City *) * newRoute->length);
+        if (newRoute->howTheWayGoes == NULL)
+        {
+            free(failInsurance);
+            free(newRoute);
+            return NULL;
+        }
+        newRoute->howTheWayGoes[newRoute->length - 1] = act;
+    }
+
+    return newRoute;
 }
 
 bool extendRoute(Map *map, unsigned routeId, const char *city)

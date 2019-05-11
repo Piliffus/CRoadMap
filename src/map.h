@@ -10,6 +10,11 @@
 #define __MAP_H__
 
 #include <stdbool.h>
+#include <limits.h>
+
+#define ROUTES_AMOUNT 1000
+#define INFINITY INT_MAX
+
 /**
   * Struktura przechowująca informacje o mieście.
   */
@@ -34,6 +39,11 @@ typedef struct RoadList RoadList;
  * Struktura przechowująca mapę dróg krajowych.
  */
 typedef struct Map Map;
+
+/**
+ * Struktura przechowująca drogę krajową.
+ */
+ typedef struct Route Route;
 
 /** @brief Tworzy nową strukturę.
  * Tworzy nową, pustą strukturę niezawierającą żadnych miast, odcinków dróg ani
