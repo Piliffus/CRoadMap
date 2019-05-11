@@ -609,7 +609,7 @@ City *lowestDistanceNode(Map *map)
 
     for (CityList* act = map->cities; act != NULL; act=act->next)
     {
-        if (!act->this->visited)
+        if (!act->this->visited) // we want unvisited node
         {
             if (act->this->distance < lowestDistance)
             {
@@ -702,7 +702,7 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
             free(newRoute);
             return NULL;
         }
-        newRoute->howTheWayGoes[newRoute->length - 1] = act;
+        newRoute->howTheWayGoes[newRoute->length - 1] = act; // TODO: age compare and reverse array
     }
 
     return newRoute;
@@ -710,11 +710,40 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
 
 bool extendRoute(Map *map, unsigned routeId, const char *city)
 {
-    UNUSED(map);
-    UNUSED(routeId);
-    UNUSED(city);
+    Route *oldRoute = map->routes[routeId];
+    if (oldRoute == NULL) return false;
 
-    return false;
+    City *newFinish = findCity(map, city);
+    if (newFinish == NULL) return false;
+
+    Route *newPart = dkstra(map, routeId,
+                            oldRoute->howTheWayGoes[oldRoute->length - 1],
+                            newFinish);
+    if (newPart == NULL) return false;
+
+    City **failInsurance = oldRoute->howTheWayGoes;
+    oldRoute->howTheWayGoes = realloc(oldRoute->howTheWayGoes, sizeof(City *) *
+                                                               (oldRoute->length +
+                                                                newPart->length));
+    if (oldRoute->howTheWayGoes == NULL)
+    {
+        oldRoute->howTheWayGoes = failInsurance;
+        free(newPart->howTheWayGoes);
+        free(newPart);
+        return false;
+    }
+
+    unsigned oldLength = oldRoute->length;
+    oldRoute->length += newPart->length;
+
+    for (unsigned i = 0; i < newPart->length; i++)
+    {
+        oldRoute->howTheWayGoes[oldLength + i] = newPart->howTheWayGoes[i];
+    }
+
+    free(newPart->howTheWayGoes);
+    free(newPart);
+    return true;
 }
 
 char const* getRouteDescription(Map *map, unsigned routeId)
