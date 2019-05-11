@@ -428,20 +428,79 @@ Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2)
     return NULL;
 }
 
+bool hasCity(Route route, City *cityA, City *cityB)
+{
+    for (unsigned i = 0; i < route.length; i++)
+    {
+        if (route.howTheWayGoes[i] == cityA || route.howTheWayGoes[i] == cityB)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool checkRoutesAfterRoadRemoval(Map *map, City *cityA, City *cityB)
+{
+    // returned true means it`s ok to remove this road and updates routes,
+    // false means it`s not ok and doesn`t change anything
+
+    Route *potentialNewRoutes[ROUTES_AMOUNT];
+
+    for (int i = 0; i < ROUTES_AMOUNT; i++)
+    {
+        potentialNewRoutes[i] = NULL;
+    }
+
+    for (int j = 0; j < ROUTES_AMOUNT; j++)
+    {
+        if (hasCity(map->routes[j], cityA, cityB))
+        {
+            potentialNewRoutes[j] = dkstra(map, j,
+                                           map->routes[j].howTheWayGoes[0],
+                                           map->routes[j].howTheWayGoes[
+                                                   map->routes[j].length - 1]);
+            if (potentialNewRoutes[j] == NULL) return false;
+        }
+    }
+
+    for (int k = 0; k < ROUTES_AMOUNT; k++)
+    {
+        if (potentialNewRoutes[k] != NULL)
+        {
+            map->routes[k] = potentialNewRoutes[k];
+        }
+    }
+    // TODO: memory leak?
+    return true;
+}
+
 bool removeRoad(Map *map, const char *city1, const char *city2)
 {
     Road *road = findRoadBetweenCities(map, city1, city2);
+
     if (road == NULL)
     {
         return false;
     }
+
     else
     {
         City *cityA = road->cityA;
         City *cityB = road->cityB;
+        unsigned length = road->length;
+        int year = road->year; // in case we put it back
         removeFromRoadList(road, cityA);
         removeFromRoadList(road, cityB);
         free(road);
+
+        if (!checkRoutesAfterRoadRemoval(map, cityA, cityB))
+        {
+            addRoad(map, city1, city2, length, year);
+            return false;
+        }
+
         return true;
     }
 }
@@ -738,7 +797,7 @@ bool extendRoute(Map *map, unsigned routeId, const char *city)
 
     for (unsigned i = 0; i < newPart->length; i++)
     {
-        oldRoute->howTheWayGoes[oldLength + i] = newPart->howTheWayGoes[i];
+        oldRoute->howTheWayGoes[oldLength-1 + i] = newPart->howTheWayGoes[i];
     }
 
     free(newPart->howTheWayGoes);
