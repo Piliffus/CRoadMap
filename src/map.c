@@ -179,6 +179,11 @@ Map *newMap(void)
     if (newMap != NULL)
     {
         newMap->cities = NULL;
+
+        for (int i = 0; i < ROUTES_AMOUNT; i++)
+        {
+            newMap->routes[i] = NULL;
+        }
     }
 
     return newMap;
@@ -223,6 +228,14 @@ void deleteMap(Map *map)
         }
         free(roadsToRemove);
 
+        for (int i = 0; i < ROUTES_AMOUNT; i++) // remove routes
+        {
+            if (map->routes[i] != NULL)
+            {
+                free(map->routes[i]->howTheWayGoes);
+                free(map->routes[i]);
+            }
+        }
         free(map);
     }
 }
@@ -636,13 +649,6 @@ bool newRoute(Map *map, unsigned routeId, const char *city1, const char *city2)
     City *finish = findCity(map, city2);
 
     if (start == NULL || finish == NULL)
-    {
-        return false;
-    }
-
-    map->routes[routeId] = malloc(sizeof(Route));
-
-    if (map->routes[routeId] == NULL)
     {
         return false;
     }
