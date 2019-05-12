@@ -342,7 +342,7 @@ bool makeNewRoad(City *cityA, City *cityB, unsigned length,
  */
 City *makeNewCity(Map *map, const char *name);
 
-Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish);
+Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish, bool avoidSelf);
 
 CityList *findEmptySpotForCityList(Map *map) // helper
 {
@@ -472,7 +472,7 @@ bool checkRoutesAfterRoadRemoval(Map *map, City *cityA, City *cityB)
             potentialNewRoutes[j] = dkstra(map, j,
                                            map->routes[j]->howTheWayGoes[0],
                                            map->routes[j]->howTheWayGoes[
-                                                   map->routes[j]->length - 1]);
+                                                   map->routes[j]->length - 1], false);
             if (potentialNewRoutes[j] == NULL) return false;
         }
     }
@@ -636,10 +636,11 @@ bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
 
 bool newRoute(Map *map, unsigned routeId, const char *city1, const char *city2)
 {
-    if (routeId > 999 || routeId < 1)
+    if (routeId >= ROUTES_AMOUNT || routeId < 1)
     {
         return false;
     }
+
     if (map->routes[routeId] != NULL)
     {
         return false;
@@ -653,7 +654,7 @@ bool newRoute(Map *map, unsigned routeId, const char *city1, const char *city2)
         return false;
     }
 
-    Route *newRoute = dkstra(map, routeId, start, finish);
+    Route *newRoute = dkstra(map, routeId, start, finish, false);
 
     if (newRoute == NULL)
     {
@@ -710,7 +711,7 @@ void reverseArray(City **array, unsigned length)
     }
 }
 
-Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
+Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish, bool avoidSelf)
 {
     CityList *akt = map->cities;
     while (akt != NULL)
@@ -722,7 +723,7 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
         akt = akt->next;
     }
 
-    if (map->routes[routeId] != NULL)
+    if (map->routes[routeId] != NULL && avoidSelf)
     {
         // if we are extending an already existing route, then we must make sure
         // it doesn`t cross itself
@@ -804,7 +805,7 @@ bool extendRoute(Map *map, unsigned routeId, const char *city)
 
     Route *newPart = dkstra(map, routeId,
                             oldRoute->howTheWayGoes[oldRoute->length - 1],
-                            newFinish);
+                            newFinish, true);
     if (newPart == NULL) return false;
 
     City **failInsurance = oldRoute->howTheWayGoes;
