@@ -15,6 +15,7 @@
 #define ROUTES_AMOUNT 1000
 #define INFINITY UINT_MAX
 #define CHAR_BUFFER 1240
+#define YEAR_INFINTY INT_MAX
 
 /**
   * Struktura przechowująca informacje o mieście.

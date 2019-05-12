@@ -34,7 +34,12 @@ struct City
     /**
     * bbhib
     */
-    City* previous;
+    City *previous;
+
+    /**
+    * bbhib
+    */
+    int worstAge;
 };
 
 /**
@@ -342,7 +347,7 @@ bool makeNewRoad(City *cityA, City *cityB, unsigned length,
  */
 City *makeNewCity(Map *map, const char *name);
 
-Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish, bool avoidSelf);
+Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish);
 
 CityList *findEmptySpotForCityList(Map *map) // helper
 {
@@ -376,6 +381,11 @@ bool addRoad(Map *map, const char *city1, const char *city2,
     }
 
     if (builtYear == 0)
+    {
+        return false;
+    }
+
+    if (length <= 0)
     {
         return false;
     }
@@ -440,17 +450,87 @@ Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2)
     return NULL;
 }
 
-bool hasCity(Route *route, City *cityA, City *cityB)
+bool hasCities(Route *route, City *cityA, City *cityB)
 {
+    if (route == NULL) return false;
+    bool cityAOK = false;
+    bool cityBOK = false;
+
     for (unsigned i = 0; i < route->length; i++)
     {
-        if (route->howTheWayGoes[i] == cityA || route->howTheWayGoes[i] == cityB)
+        if (!cityAOK)
+        {
+            if (route->howTheWayGoes[i] == cityA)
+            {
+                cityAOK = true;
+            }
+        }
+        if (!cityBOK)
+        {
+            if (route->howTheWayGoes[i] == cityB)
+            {
+                cityBOK = true;
+            }
+        }
+        if (cityAOK && cityBOK)
         {
             return true;
         }
     }
 
     return false;
+}
+
+unsigned findCityIndex(Route *route, City *cityToFind)
+{
+    for (unsigned i = 0; i < route->length; i++)
+    {
+        if (route->howTheWayGoes[i] == cityToFind)
+        {
+            return i;
+        }
+    }
+
+    return INFINITY;
+}
+
+/**
+ * @brief Wstawia jedną drogę krajową w drugą. Zakładamy że mamy miejsce.
+ * Funkcja pomocnicza.
+ * @param target -- wskaźnik na drogę do której dodajemy drugą
+ * @param source -- wskaźnik na dodawaną drogę
+ * @param from -- wstawiamy od miasta o tym indeksie włącznie
+ * @param to -- wstawiamy do miasta o tym indeksie włącznie
+ */
+void insertIntoRoute(Route *target, Route *source, unsigned from, unsigned to)
+{
+    if (from > to)
+    {
+        unsigned helper = to;
+        to = from;
+        from = helper;
+    }
+
+    unsigned oldLength = target->length;
+    target->length += (source->length - 2);// [from] and [to] are the same so -2
+    target->howTheWayGoes = realloc(target->howTheWayGoes, sizeof(City *) *
+                                                           target->length);
+
+    // we must move elements in array
+    unsigned h = 0;
+    for (unsigned i = oldLength-1; i >= to; i--)
+    {
+        h++;
+        target->howTheWayGoes[target->length-h] = target->howTheWayGoes[i];
+        target->howTheWayGoes[i] = NULL;
+    }
+
+    unsigned j = from;
+    for (unsigned k = 0; k < source->length; k++)
+    {
+        target->howTheWayGoes[j] = source->howTheWayGoes[k];
+        j++;
+    }
 }
 
 bool checkRoutesAfterRoadRemoval(Map *map, City *cityA, City *cityB)
@@ -465,26 +545,51 @@ bool checkRoutesAfterRoadRemoval(Map *map, City *cityA, City *cityB)
         potentialNewRoutes[i] = NULL;
     }
 
+    unsigned int requiredSize = 0;
     for (int j = 0; j < ROUTES_AMOUNT; j++)
     {
-        if (hasCity(map->routes[j], cityA, cityB))
+        if (hasCities(map->routes[j], cityA, cityB))
         {
+            unsigned start = findCityIndex(map->routes[j], cityA);
+            unsigned finish = findCityIndex(map->routes[j], cityB);
+            if (finish < start)
+            {
+                unsigned helper = start;
+                start = finish;
+                finish = helper;
+            }
+
             potentialNewRoutes[j] = dkstra(map, j,
-                                           map->routes[j]->howTheWayGoes[0],
-                                           map->routes[j]->howTheWayGoes[
-                                                   map->routes[j]->length - 1], false);
+                                           map->routes[j]->howTheWayGoes[start],
+                                           map->routes[j]->howTheWayGoes[finish]);
             if (potentialNewRoutes[j] == NULL) return false;
+            requiredSize += potentialNewRoutes[j]->length;
         }
     }
+
+    City **memoryCheck = malloc(sizeof(City *) * requiredSize);
+    if (memoryCheck == NULL) return false;
+    free(memoryCheck);
 
     for (int k = 0; k < ROUTES_AMOUNT; k++)
     {
         if (potentialNewRoutes[k] != NULL)
         {
-            map->routes[k] = potentialNewRoutes[k];
+            insertIntoRoute(map->routes[k], potentialNewRoutes[k],
+                            findCityIndex(map->routes[k], cityA),
+                            findCityIndex(map->routes[k], cityB));
         }
     }
-    // TODO: memory leak?
+
+    for (int i = 0; i < ROUTES_AMOUNT; i++)
+    {
+        if (potentialNewRoutes[i] != NULL)
+        {
+            free(potentialNewRoutes[i]->howTheWayGoes);
+            free(potentialNewRoutes[i]);
+        }
+    }
+
     return true;
 }
 
@@ -617,6 +722,11 @@ bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
         return false;
     }
 
+    if (repairYear == 0)
+    {
+        return false;
+    }
+
     Road *repairedRoad = findRoadBetweenCities(map, city1, city2);
 
     if (repairedRoad != NULL)
@@ -654,7 +764,7 @@ bool newRoute(Map *map, unsigned routeId, const char *city1, const char *city2)
         return false;
     }
 
-    Route *newRoute = dkstra(map, routeId, start, finish, false);
+    Route *newRoute = dkstra(map, routeId, start, finish);
 
     if (newRoute == NULL)
     {
@@ -711,23 +821,28 @@ void reverseArray(City **array, unsigned length)
     }
 }
 
-Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish, bool avoidSelf)
+int min(int arg1, int arg2)
 {
-    CityList *akt = map->cities;
-    while (akt != NULL)
+    return arg1 < arg2 ? arg1 : arg2;
+}
+
+Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
+{
+    for (CityList *akt = map->cities; akt != NULL; akt = akt->next)
     {
         // we make set of unvisited nodes
         akt->this->distance = INFINITY;
+        akt->this->worstAge = YEAR_INFINTY;
         akt->this->visited = false;
         akt->this->previous = NULL;
-        akt = akt->next;
+
     }
 
-    if (map->routes[routeId] != NULL && avoidSelf)
+    if (map->routes[routeId] != NULL)
     {
         // if we are extending an already existing route, then we must make sure
         // it doesn`t cross itself
-        for(unsigned i = 0; i < map->routes[routeId]->length; i++)
+        for (unsigned i = 0; i < map->routes[routeId]->length; i++)
         {
             map->routes[routeId]->howTheWayGoes[i]->visited = true;
         }
@@ -736,6 +851,7 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish, bool av
     // distance is 0 for starting node
     start->distance = 0;
     start->visited = false;
+    finish->visited = false;
 
     while (thereAreUnvisitedNodes(map))
     {
@@ -755,10 +871,29 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish, bool av
             {
                 unsigned newDistance =
                         actCity->distance + actRoad->this->length;
+                int newAge = min(actCity->worstAge, actRoad->this->year);
+
                 if (newDistance < neighbour->distance)
                 {
                     neighbour->distance = newDistance;
                     neighbour->previous = actCity;
+                    neighbour->worstAge = newAge;
+                }
+                else if (newDistance == neighbour->distance)
+                {
+                    if (newAge > neighbour->worstAge)
+                    {
+                        neighbour->distance = newDistance;
+                        neighbour->previous = actCity;
+                        neighbour->worstAge = newAge;
+                    }
+                    else if (newAge == neighbour->worstAge)
+                    {
+                        // we cannot decide how to get to this node, so this
+                        // node is unreachable
+//                        neighbour->visited = true;
+                        neighbour->previous = NULL;
+                    }
                 }
             }
         }
@@ -778,6 +913,13 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish, bool av
 
     for (City *act = finish; act != NULL; act = act->previous)
     {
+        if (act->previous == NULL && act != start)
+        {
+            free(newRoute->howTheWayGoes);
+            free(newRoute);
+            return NULL;
+        }
+
         newRoute->length++;
         City **failInsurance = newRoute->howTheWayGoes; // in case realloc fails
         newRoute->howTheWayGoes = realloc(newRoute->howTheWayGoes,
@@ -797,6 +939,11 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish, bool av
 
 bool extendRoute(Map *map, unsigned routeId, const char *city)
 {
+    if (routeId >= ROUTES_AMOUNT || routeId < 1)
+    {
+        return false;
+    }
+
     Route *oldRoute = map->routes[routeId];
     if (oldRoute == NULL) return false;
 
@@ -805,7 +952,7 @@ bool extendRoute(Map *map, unsigned routeId, const char *city)
 
     Route *newPart = dkstra(map, routeId,
                             oldRoute->howTheWayGoes[oldRoute->length - 1],
-                            newFinish, true);
+                            newFinish);
     if (newPart == NULL) return false;
 
     City **failInsurance = oldRoute->howTheWayGoes;
@@ -850,14 +997,21 @@ Road *findRoadBetween(City *start, City *finish)
 
 char const *getRouteDescription(Map *map, unsigned routeId)
 {
-    if (map->routes[routeId] == NULL) return "";
+    //TODO: buffer
+    char* fail = malloc(sizeof(char)*1);
+    if (fail == NULL) return fail;
+    fail[0] = '\0';
+
+    if (routeId >= ROUTES_AMOUNT || routeId < 1) return fail;
+
+    if (map->routes[routeId] == NULL) return fail;
 
     char *returnedString = malloc(sizeof(char) * CHAR_BUFFER);
     int lastChar = sprintf(returnedString, "%u;", routeId);
     if (lastChar < 0)
     {
         free(returnedString);
-        return "";
+        return fail;
     }
 
     unsigned i = 0;
@@ -868,7 +1022,7 @@ char const *getRouteDescription(Map *map, unsigned routeId)
         if (success < 0)
         {
             free(returnedString);
-            return "";
+            return fail;
         }
         lastChar += success;
 
@@ -880,7 +1034,7 @@ char const *getRouteDescription(Map *map, unsigned routeId)
         if (success < 0)
         {
             free(returnedString);
-            return "";
+            return fail;
         }
         lastChar += success;
 
@@ -894,7 +1048,9 @@ char const *getRouteDescription(Map *map, unsigned routeId)
     if (success < 0)
     {
         free(returnedString);
-        return "";
+        return fail;
     }
+
+    free(fail);
     return returnedString;
 }

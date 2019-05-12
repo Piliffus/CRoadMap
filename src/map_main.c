@@ -7,7 +7,7 @@
 
 #include <assert.h>
 
-int main() 
+int main()
 {
   char const* str;
 
