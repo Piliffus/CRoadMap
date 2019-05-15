@@ -930,7 +930,7 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
             free(newRoute);
             return NULL;
         }
-        newRoute->howTheWayGoes[newRoute->length - 1] = act; // TODO: age compare
+        newRoute->howTheWayGoes[newRoute->length - 1] = act;
     }
 
     reverseArray(newRoute->howTheWayGoes, newRoute->length);
@@ -949,6 +949,8 @@ bool extendRoute(Map *map, unsigned routeId, const char *city)
 
     City *newFinish = findCity(map, city);
     if (newFinish == NULL) return false;
+
+    if (findCityIndex(map->routes[routeId], newFinish) != INFINITY) return false;
 
     Route *newPart = dkstra(map, routeId,
                             oldRoute->howTheWayGoes[oldRoute->length - 1],
@@ -997,7 +999,6 @@ Road *findRoadBetween(City *start, City *finish)
 
 char const *getRouteDescription(Map *map, unsigned routeId)
 {
-    //TODO: buffer
     char* fail = malloc(sizeof(char)*1);
     if (fail == NULL) return fail;
     fail[0] = '\0';
@@ -1007,6 +1008,20 @@ char const *getRouteDescription(Map *map, unsigned routeId)
     if (map->routes[routeId] == NULL) return fail;
 
     char *returnedString = malloc(sizeof(char) * CHAR_BUFFER);
+    int neededLength = snprintf(NULL, 0, "%u;", routeId);
+    int actualLength = CHAR_BUFFER;
+
+    if (neededLength >= actualLength)
+    {
+        char *failInsurance = returnedString;
+        returnedString = realloc(returnedString, sizeof(char) * neededLength+1);
+        if (returnedString == NULL)
+        {
+            free(failInsurance);
+            return fail;
+        }
+    }
+
     int lastChar = sprintf(returnedString, "%u;", routeId);
     if (lastChar < 0)
     {
@@ -1014,9 +1029,22 @@ char const *getRouteDescription(Map *map, unsigned routeId)
         return fail;
     }
 
-    unsigned i = 0;
+    unsigned i = 0; // 'i' declared outside because will be needed later
     for (; i < map->routes[routeId]->length - 1; i++)
     {
+        neededLength += snprintf(NULL, 0, "%s;",
+                                map->routes[routeId]->howTheWayGoes[i]->name);
+        if (neededLength >= actualLength)
+        {
+            char *failInsurance = returnedString;
+            returnedString = realloc(returnedString, sizeof(char) * neededLength+1);
+            if (returnedString == NULL)
+            {
+                free(failInsurance);
+                return fail;
+            }
+            actualLength = neededLength + 1;
+        }
         int success = sprintf(returnedString + lastChar, "%s;",
                               map->routes[routeId]->howTheWayGoes[i]->name);
         if (success < 0)
@@ -1029,6 +1057,19 @@ char const *getRouteDescription(Map *map, unsigned routeId)
         City *destination = map->routes[routeId]->howTheWayGoes[i + 1];
         Road *road = findRoadBetween(map->routes[routeId]->howTheWayGoes[i],
                                      destination);
+        neededLength += snprintf(NULL, 0, "%u;%d;", road->length,
+                                 road->year);
+        if (neededLength >= actualLength)
+        {
+            char *failInsurance = returnedString;
+            returnedString = realloc(returnedString, sizeof(char) * neededLength+1);
+            if (returnedString == NULL)
+            {
+                free(failInsurance);
+                return fail;
+            }
+            actualLength = neededLength + 1;
+        }
         success = sprintf(returnedString + lastChar, "%u;%d;", road->length,
                           road->year);
         if (success < 0)
@@ -1042,6 +1083,19 @@ char const *getRouteDescription(Map *map, unsigned routeId)
 
     // we do this outside of loop because we don`t want ';'
     // nor want to overflow with howTheWayGoes[i + 1]
+
+    neededLength += snprintf(NULL, 0, "%s",
+                             map->routes[routeId]->howTheWayGoes[i]->name);
+    if (neededLength >= actualLength)
+    {
+        char *failInsurance = returnedString;
+        returnedString = realloc(returnedString, sizeof(char) * neededLength+1);
+        if (returnedString == NULL)
+        {
+            free(failInsurance);
+            return fail;
+        }
+    }
 
     int success = sprintf(returnedString + lastChar, "%s",
                           map->routes[routeId]->howTheWayGoes[i]->name);
