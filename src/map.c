@@ -4,7 +4,9 @@
 #include <string.h>
 #include <stdio.h>
 
-#define UNUSED(v) ((void)(v))
+#define CHAR_BUFFER 1240
+#define INFINITY UINT_MAX
+#define YEAR_INFINTY INT_MAX
 
 /**
    * Struktura przechowująca informacje o mieście.
@@ -22,22 +24,22 @@ struct City
     RoadList *roads;
 
     /**
-     * bbhib
+     * @brief Najlepsza odległość, używane przez algorytm djkstry
      */
     unsigned distance;
 
     /**
-     * bbhib
+     * @brief Flaga używana przez algorytm djkstry
      */
     bool visited;
 
     /**
-    * bbhib
+    * @brief Wskaznik na poprzednie miasto na drodze krajowej, uzwyane przez algorytm djkstry
     */
     City *previous;
 
     /**
-    * bbhib
+    * @brief Najgorsza dotychczasowa wartość wieku, używana przez algorytm djkstry
     */
     int worstAge;
 };

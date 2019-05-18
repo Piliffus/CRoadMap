@@ -1,4 +1,5 @@
 #include "map.h"
+#include "map_userInterface.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -48,6 +49,8 @@ int main()
   free((void *)str);
 
   deleteMap(m);
+
+  userReadInput(NULL);
 
   return 0;
 }

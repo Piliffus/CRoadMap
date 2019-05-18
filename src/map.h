@@ -13,9 +13,6 @@
 #include <limits.h>
 
 #define ROUTES_AMOUNT 1000
-#define INFINITY UINT_MAX
-#define CHAR_BUFFER 1240
-#define YEAR_INFINTY INT_MAX
 
 /**
   * Struktura przechowująca informacje o mieście.
@@ -76,7 +73,7 @@ void deleteMap(Map *map);
  * miastami już istnieje lub nie udało się zaalokować pamięci.
  */
 bool addRoad(Map *map, const char *city1, const char *city2,
-             unsigned length, int builtYear); // DONE
+             unsigned length, int builtYear);
 
 /** @brief Sprawdza czy istnieje miasto o danej nazwie.
  * Funkcja szuka na liście miast będacej częścią mapy
