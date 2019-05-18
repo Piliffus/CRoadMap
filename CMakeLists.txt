@@ -21,9 +21,11 @@ set(CMAKE_C_FLAGS "-std=c11 -Wall -Wextra")
 
 # Wskazujemy pliki źródłowe.
 set(SOURCE_FILES
-    src/map.c
-    src/map.h
-    src/map_main.c)
+        src/map.c
+        src/map.h
+        src/map_main.c
+        src/map_userInterface.c
+        src/map_userInterface.h)
 
 # Wskazujemy plik wykonywalny.
 add_executable(map ${SOURCE_FILES})
