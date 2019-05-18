@@ -1,3 +1,10 @@
+/** @file
+ * Implementacja klasy odpowiadającej za interakcję z uzytkownikiem
+ *
+ * @author Filip Bieńkowski 407686
+ * @copyright Uniwersytet Warszawski
+ */
+
 #include "map_userInterface.h"
 #include "map.h"
 #include <stdio.h>
@@ -5,7 +12,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define CHAR_BUFFER 81
+#define CHAR_BUFFER 2048
 
 /**
  * @brief Wypisuje komunikat o błędzie. Funkcja pomocnicza
@@ -70,28 +77,27 @@ bool entireLineRead(char *string)
  * */
 bool analyzeString(Map *map, char *command)
 {
-    const char *addRoad = "addRoad";
-    const char *repairRoad = "repairRoad";
-    const char *getRouteDescription = "getRouteDescription";
-    const char *delmiter = ";";
-
-    char *whichCommand = strtok(command, delmiter);
+    ADD_ROAD
+    REPAIR_ROAD
+    GET_ROUTE_DESCRIPTION
+    DELIMITER
+    char *whichCommand = strtok(command, delimiter);
 
     if (strcmp(whichCommand, addRoad) == 0) // addRoad
     {
-        if (!userAddRoad(map, command)) return false;
+        if (!userAddRoad(map)) return false;
     }
     else if (strcmp(whichCommand, repairRoad) == 0) // repairRoad
     {
-        if (!userRepairRoad(map, command)) return false;
+        if (!userRepairRoad(map)) return false;
     }
     else if (strcmp(whichCommand, getRouteDescription) == 0) // getRtDescription
     {
-        if (!userGetRouteDescription(map, command)) return false;
+        if (!userGetRouteDescription(map)) return false;
     }
     else // makeRoute
     {
-        if (!userMakeRoute(map, command)) return false;
+        if (!userMakeRoute(map, whichCommand)) return false;
     }
 
     return true;
@@ -118,9 +124,10 @@ bool tooManyArguments(char *argument)
     else return false;
 }
 
-bool userAddRoad(Map *map, char *command)
+bool userAddRoad(Map *map)
 {
-    const char *delimiter = ";";
+    DELIMITER
+
     char *city1 = strtok(NULL, delimiter);
     char *city2 = strtok(NULL, delimiter);
     char *length = strtok(NULL, delimiter);
@@ -152,9 +159,10 @@ bool userAddRoad(Map *map, char *command)
     return true;
 }
 
-bool userGetRouteDescription(Map *map, char *command)
+bool userGetRouteDescription(Map *map)
 {
-    const char *delimiter = ";";
+    DELIMITER
+
     char *routeId = strtok(NULL, delimiter);
 
     if (routeId == NULL)
@@ -176,14 +184,16 @@ bool userGetRouteDescription(Map *map, char *command)
     const char *string = getRouteDescription(map, routeIdInt);
     if (string == NULL) return false;
 
-    printf("%s\n", string); // TODO: free?
+    printf("%s\n", string);
+    free((void *)string);
 
     return true;
 }
 
-bool userRepairRoad(Map *map, char *command)
+bool userRepairRoad(Map *map)
 {
-    const char *delimiter = ";";
+    DELIMITER
+
     char *city1 = strtok(NULL, delimiter);
     char *city2 = strtok(NULL, delimiter);
     char *year = strtok(NULL, delimiter);
@@ -211,7 +221,64 @@ bool userRepairRoad(Map *map, char *command)
 
 bool userMakeRoute(Map *map, char *command)
 {
-    return false;
+    DELIMITER
+
+    char *routeId = command;
+
+    if (routeId == NULL) return false;
+
+    // last char is a first char after numerical value
+    int routeIdInt;
+    char *routeIdIntLastChar;
+    routeIdInt = strtol(routeId, &routeIdIntLastChar, 10);
+    if (routeIdInt == 0 || *routeIdIntLastChar != '\0') return false;
+
+    char *startCity = strtok(NULL, delimiter);
+    if (startCity == NULL) return false;
+
+    Route *newRoute = newCustomRoute(map, routeIdInt, startCity);
+    if (newRoute == NULL)
+    {
+        return false;
+    }
+
+    bool allRead = false;
+    while (!allRead)
+    {
+        char *length = strtok(NULL, delimiter);
+        char *year = strtok(NULL, delimiter);
+        char *destination = strtok(NULL, delimiter);
+
+        if (length == NULL || year == NULL || destination == NULL)
+        {
+            // means syntax error
+            return false;
+        }
+
+        if (destination[strlen(destination)-1] == '\n')
+        {
+            // it was last argument
+            destination[strlen(destination)-1] = '\0';
+            allRead = true;
+        }
+
+        unsigned lengthInt;
+        char *lengthIntLastChar;
+        lengthInt = strtol(length, &lengthIntLastChar, 10);
+        if (lengthInt == 0 || *lengthIntLastChar != '\0') return false;
+
+        int yearInt;
+        char *yearIntLastChar;
+        yearInt = strtol(year, &yearIntLastChar, 10);
+        if (yearInt == 0 || *yearIntLastChar != '\0') return false;
+
+        if (!extendCustomRoute(map, routeIdInt, lengthInt, yearInt, destination))
+        {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void userReadInput(Map *map)

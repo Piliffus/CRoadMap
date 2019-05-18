@@ -1,3 +1,10 @@
+/** @file
+ * Implementacja klasy przechowującej mapę dróg krajowych
+ *
+ * @author Filip Bieńkowski 407686
+ * @copyright Uniwersytet Warszawski
+ */
+
 #include "map.h"
 
 #include <stdlib.h>
@@ -178,6 +185,25 @@ bool isOnTheArray(Road *pRoad, Road *remove[], int ofRemove);
  * @param pCity -- wskaznik na miasto z którego listy usuwamy odcinek drogi
  */
 void removeFromRoadList(Road *pRoad, City *pCity);
+
+/** @brief Sprawdza czy istnieje miasto o danej nazwie.
+ * Funkcja szuka na liście miast będacej częścią mapy
+ * miasta o podanej nazwie.
+ * @param[in] map        – wskaźnik na strukturę przechowującą mapę dróg;
+ * @param[in] cityName   – wskaźnik na napis reprezentujący nazwę miasta;
+ * @return Wskaźnik na miasto, jesli takie miasto istnieje
+ * lub NULL, jeśli nie ma takiego miasta.
+ */
+City* findCity(Map *map, const char *cityName);
+
+/** @brief Sprawdza czy nazwa jest poprawną nazwą dla miasta.
+ * Funkcja szuka w ciągu znaków znaków o kodach od 0 do 31, średników, oraz
+ * sprawdza czy ciąg nie jest pusty.
+ * @param[in] name       – ciąg znaków testowany czy nadaje się na nazwę miasta;
+ * @return Wartość @p true, jesli wszystkie znaki w ciągu są dozwolone
+ * Wartość @p false, jesli nie wszystkie znaki są dozwolone.
+ */
+bool isCorrectName(const char *name); // mine, helper, DONE
 
 Map *newMap(void)
 {
@@ -687,7 +713,7 @@ City *makeNewCity(Map *map, const char *name)
     }
 }
 
-bool makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear) // helper, true = ok, false error
+bool makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear)
 {
     RoadList *newNodeA = malloc(sizeof(RoadList));
     RoadList *newNodeB = malloc(sizeof(RoadList));
@@ -1109,4 +1135,82 @@ char const *getRouteDescription(Map *map, unsigned routeId)
 
     free(fail);
     return returnedString;
+}
+
+Route* newCustomRoute(Map *map, unsigned routeId, const char *startCity)
+{
+    if (routeId < 1 || routeId >= ROUTES_AMOUNT)
+    {
+        return NULL;
+    }
+    if (map->routes[routeId] != NULL)
+    {
+        return NULL;
+    }
+    if (!isCorrectName(startCity))
+    {
+        return NULL;
+    }
+
+    City *startCityPtr = findCity(map, startCity);
+    if (startCityPtr == NULL)
+    {
+        startCityPtr = makeNewCity(map, startCity);
+    }
+
+    Route *newRoute = malloc(sizeof(Route));
+    if (newRoute == NULL) return NULL;
+
+    newRoute->length = 1;
+    newRoute->howTheWayGoes = malloc(sizeof(City*) * newRoute->length);
+    newRoute->howTheWayGoes[0] = startCityPtr;
+    map->routes[routeId] = newRoute;
+
+    return newRoute;
+}
+
+bool extendCustomRoute(Map *map, unsigned routeId, unsigned length, int year,
+                       const char *destinationName)
+{
+    City *start = map->routes[routeId]->howTheWayGoes[
+            map->routes[routeId]->length - 1];
+    City *destination = findCity(map, destinationName);
+    Road *road = (destination == NULL ? NULL : findRoadBetween(start,
+                                                               destination));
+    // if we don`t have a city, make one.
+    if (destination == NULL)
+    {
+        if (!isCorrectName(destinationName)) return false;
+        destination = makeNewCity(map, destinationName);
+    }
+    // failed alloc
+    if (destination == NULL) return false;
+
+    // if we already have a road, update it`s year
+    if (road != NULL)
+    {
+        if (road->length != length || road->year > year) return false;
+        else road->year = year;
+    }
+    else // if road == NULL, make one
+    {
+        if (!makeNewRoad(start, destination, length, year)) return false;
+    }
+
+    // now add new part to the route
+    map->routes[routeId]->length++;
+    City **failInsurance = map->routes[routeId]->howTheWayGoes;
+
+    map->routes[routeId]->howTheWayGoes = realloc(
+            map->routes[routeId]->howTheWayGoes,
+            sizeof(City *) * map->routes[routeId]->length);
+    if (map->routes[routeId]->howTheWayGoes == NULL)
+    {
+        map->routes[routeId]->howTheWayGoes = failInsurance;
+        return false;
+    }
+
+    map->routes[routeId]->howTheWayGoes[map->routes[routeId]->length -
+                                        1] = destination;
+    return true;
 }

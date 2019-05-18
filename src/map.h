@@ -75,25 +75,6 @@ void deleteMap(Map *map);
 bool addRoad(Map *map, const char *city1, const char *city2,
              unsigned length, int builtYear);
 
-/** @brief Sprawdza czy istnieje miasto o danej nazwie.
- * Funkcja szuka na liście miast będacej częścią mapy
- * miasta o podanej nazwie.
- * @param[in] map        – wskaźnik na strukturę przechowującą mapę dróg;
- * @param[in] cityName   – wskaźnik na napis reprezentujący nazwę miasta;
- * @return Wskaźnik na miasto, jesli takie miasto istnieje
- * lub NULL, jeśli nie ma takiego miasta.
- */
-City* findCity(Map *map, const char *cityName); // mine, helper, DONE
-
-/** @brief Sprawdza czy nazwa jest poprawną nazwą dla miasta.
- * Funkcja szuka w ciągu znaków znaków o kodach od 0 do 31, średników, oraz
- * sprawdza czy ciąg nie jest pusty.
- * @param[in] name       – ciąg znaków testowany czy nadaje się na nazwę miasta;
- * @return Wartość @p true, jesli wszystkie znaki w ciągu są dozwolone
- * Wartość @p false, jesli nie wszystkie znaki są dozwolone.
- */
-bool isCorrectName(const char *name); // mine, helper, DONE
-
 /** @brief Modyfikuje rok ostatniego remontu odcinka drogi.
  * Dla odcinka drogi między dwoma miastami zmienia rok jego ostatniego remontu
  * lub ustawia ten rok, jeśli odcinek nie był jeszcze remontowany.
@@ -107,7 +88,7 @@ bool isCorrectName(const char *name); // mine, helper, DONE
  * podanymi miastami, podany rok jest wcześniejszy niż zapisany dla tego odcinka
  * drogi rok budowy lub ostatniego remontu.
  */
-bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear); // DONE
+bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear);
 
 /** @brief Łączy dwa różne miasta drogą krajową.
  * Tworzy drogę krajową pomiędzy dwoma miastami i nadaje jej podany numer.
@@ -183,5 +164,35 @@ bool removeRoad(Map *map, const char *city1, const char *city2);
  * @return Wskaźnik na napis lub NULL, gdy nie udało się zaalokować pamięci.
  */
 char const* getRouteDescription(Map *map, unsigned routeId);
+
+/** @brief Deklaruje nową drogę krajową o parametrach podanych przez użytkownika.
+ * Tworzy drogę krajową, zaczynającą się w mieście o nazwie podanej przez użytkownika.
+ * Jeżeli takie miasto nie istnieje, to tworzy je.
+ * @param[in,out] map    – wskaźnik na strukturę przechowującą mapę dróg;
+ * @param[in] routeId    – numer drogi krajowej;
+ * @param[in] startCity  – wskaźnik na napis reprezentujący nazwę miasta początkowego;
+ * @return Wskaźnik na drogę, jeśli droga krajowa została utworzona.
+ * Wartość NULL, jeśli wystąpił błąd: któryś z parametrów ma niepoprawną
+ * wartość, istnieje już droga krajowa o podanym numerze, lub nie udało
+ * się zaalokować pamięci.
+ */
+Route* newCustomRoute(Map *map, unsigned routeId, const char *startCity);
+
+/** @brief Wydłuża drogę krajową o parametrach podanych przez użytkownika.
+ * Wydłuża drogę krajową, do miasta o nazwie podanej przez użytkownika, drogą o
+ * podanych parametrach. Jeżeli droga między miastami już istnieje, to jeśli podany
+ * rok jest wcześniejszy, to remontuje ją.
+ * Jeżeli takie miasto lub droga nie istnieje, to tworzy je.
+ * @param[in,out] map    – wskaźnik na strukturę przechowującą mapę dróg;
+ * @param[in] routeId    – numer drogi krajowej;
+ * @param[in] length     – podana długość odcinka drogi
+ * @param[in] year       – podany rok budowy lub ostatniego remontu
+ * @param[in] destination– wskaźnik na napis reprezentujący nazwę miasta docelowego;
+ * @return Wartosć @p true, jeśli droga krajowa została wydłużona.
+ * Wartość @p false, jeśli wystąpił błąd: któryś z parametrów ma niepoprawną
+ * wartość, istnieje już droga pomiędzy tymi miastami o innej długości albo
+ * młodszym roku budowy, lub nie udało się zaalokować pamięci.
+ */
+bool extendCustomRoute(Map *map, unsigned routeId, unsigned length, int year, const char *destination);
 
 #endif /* __MAP_H__ */
