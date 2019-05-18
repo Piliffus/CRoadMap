@@ -319,7 +319,8 @@ void userReadInput(Map *map)
             command = realloc(command, sizeof(char) * bufferSize);
             // now we get next part of the line
             resetString(buffer, bufferSize);
-            fgets(buffer, bufferSize, stdin); // TODO: check for null here?
+            fgets(buffer, bufferSize, stdin);
+            if (buffer == NULL) break;
             // we want to overwrite NULL, so -1
             lastWriteToBufferPosition += CHAR_BUFFER - 1;
             strcpy(command + lastWriteToBufferPosition, buffer);
