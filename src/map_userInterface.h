@@ -32,7 +32,8 @@ void userReadInput(Map *map);
 /**
  * @brief Pozwala użytkownikowi stworzyć nową drogę krajową
  * Funkcja tworzy drogę krajową zgodnie z poleceniem zadanym przez użytkownika,
- * zawartym w podanym stringu.
+ * zawartym w podanym stringu. Funkcja dodaje po kolei kolejne miasta i drogi
+ * do drogi krajowej, do momentu gdy natrafi na błąd lub koniec polecenia.
  * @param map[in]           - Wskaźnik na strukturę zawierającą mapę dróg krajowych
  * @param command[in]       - String zawierający polecenie
  * @return wartość @p true jeśli wykonanie zakończyło się sukcesem, wartość @p

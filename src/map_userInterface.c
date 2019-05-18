@@ -77,6 +77,11 @@ bool entireLineRead(char *string)
  * */
 bool analyzeString(Map *map, char *command)
 {
+    if (command[0] == '#') // lines starting with '#' are ignored
+    {
+        return true;
+    }
+
     ADD_ROAD
     REPAIR_ROAD
     GET_ROUTE_DESCRIPTION
@@ -330,6 +335,8 @@ void userReadInput(Map *map)
         lastWriteToBufferPosition = 0;
     }
 
+    free(buffer);
+    free(command);
     // if we had to make our own map, we must delete it as we won`t pass it outside
     if (madeOwnMap)
     {
