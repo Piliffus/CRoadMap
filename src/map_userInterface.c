@@ -88,6 +88,7 @@ bool analyzeString(Map *map, char *command)
     GET_ROUTE_DESCRIPTION
     REMOVE_ROAD
     REMOVE_ROUTE
+    NEW_AUTO_ROUTE
     DELIMITER
 
     char *whichCommand = strtok(command, delimiter);
@@ -111,6 +112,10 @@ bool analyzeString(Map *map, char *command)
     else if (strcmp(whichCommand, removeRoute) == 0) // removeRoute
     {
         if (!userRemoveRoute(map)) return false;
+    }
+    else if (strcmp(whichCommand, newAutoRoute) == 0) // userNewAutoRoute
+    {
+        if (!userNewAutoRoute(map)) return false;
     }
     else // makeRoute
     {
@@ -402,6 +407,35 @@ bool userRemoveRoute(Map *map)
     if (routeIdInt == 0 || *routeIdIntLastChar != '\n') return false;
 
     if (!removeRoute(map, routeIdInt)) return false;
+
+    return true;
+}
+
+bool userNewAutoRoute(Map *map)
+{
+    DELIMITER
+
+    char *routeId = strtok(NULL, delimiter);
+    char *city1 = strtok(NULL, delimiter);
+    char *city2 = strtok(NULL, delimiter);
+
+    if (routeId == NULL || city1 == NULL || city2 == NULL)
+    {
+        // not enough arguments
+        return false;
+    }
+    if (tooManyArguments(city2))
+    {
+        return false;
+    }
+
+    // last char is a first char after numerical value
+    int routeIdInt;
+    char *routeIdIntLastChar;
+    routeIdInt = strtol(routeId, &routeIdIntLastChar, 10);
+    if (routeIdInt == 0 || *routeIdIntLastChar != '\0') return false;
+
+    if (!newRoute(map, routeIdInt, city1, city2)) return false;
 
     return true;
 }

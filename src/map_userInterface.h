@@ -16,6 +16,7 @@
 #define GET_ROUTE_DESCRIPTION const char *getRouteDescription = "getRouteDescription";
 #define REMOVE_ROAD const char *removeRoad = "removeRoad";
 #define REMOVE_ROUTE const char *removeRoute = "removeRoute";
+#define NEW_AUTO_ROUTE const char *newAutoRoute = "newRoute";
 #define DELIMITER const char *delimiter = ";";
 
 /**
@@ -93,5 +94,18 @@ bool userRemoveRoad(Map *map);
  * false w przeciwnym wypadku  - niepoprawna składnia polecenia lub argumenty
  * */
 bool userRemoveRoute(Map *map);
+
+/**
+ * @brief Pozwala użytkownikowi automatycznie wytyczyć nową drogę krajową
+ * Funkcja tworzy drogę krajową zgodnie z poleceniem zadanym przez użytkownika,
+ * zawartym w tokenach uzyskanych za pomocą strtok.
+ * Funkcja automatycznie wytycza drogę z miasta o nazwie będacej pierwszym argumentem
+ * do miasta o nazwie będącej drugim argumentem, zgodnie z zasadami opisanymi w
+ * dokumentacji modułu operacji na mapie dróg.
+ * @param map[in]           - Wskaźnik na strukturę zawierającą mapę dróg krajowych
+ * @return wartość @p true jeśli wykonanie zakończyło się sukcesem, wartość @p
+ * false w przeciwnym wypadku - niepoprawna składnia polecenia lub argumenty,
+ * */
+bool userNewAutoRoute(Map *map);
 
 #endif //DROGI_MAP_USERINTERFACE_H
