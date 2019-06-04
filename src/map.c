@@ -1214,3 +1214,24 @@ bool extendCustomRoute(Map *map, unsigned routeId, unsigned length, int year,
                                         1] = destination;
     return true;
 }
+
+bool removeRoute(Map *map, unsigned routeId)
+{
+    if (routeId >= ROUTES_AMOUNT || routeId <= 0)
+    {
+        return false;
+    }
+
+    if (map->routes[routeId] == NULL)
+    {
+        return false;
+    }
+
+    else
+    {
+        free(map->routes[routeId]->howTheWayGoes);
+        free(map->routes[routeId]);
+        map->routes[routeId] = NULL;
+        return true;
+    }
+}

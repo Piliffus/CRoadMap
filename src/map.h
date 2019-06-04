@@ -195,4 +195,15 @@ Route* newCustomRoute(Map *map, unsigned routeId, const char *startCity);
  */
 bool extendCustomRoute(Map *map, unsigned routeId, unsigned length, int year, const char *destination);
 
+/**
+ * @brief Usuwa drogę krajową
+ * Usuwa z mapy dróg drogę krajową o podanym numerze. Nie usuwa żadnych odcinków
+ * dróg, ani miast. Jeżeli nie ma takiej drogi, nic nie robi.
+ * @param map            - wskaźnik na strukturę przechowującą mapę dróg
+ * @param routeId        - numer drogi krajowej do usunięcia
+ * @return Wartość @p true, jeśli droga krajowa została poprawnie usunięta
+ * Wartość @p false jeśli droga krajowa o podanym numerze nie istnieje lub
+ * podany numer jest niepoprawny.
+ */
+bool removeRoute(Map *map, unsigned routeId);
 #endif /* __MAP_H__ */
