@@ -13,6 +13,7 @@
 #include <string.h>
 
 #define CHAR_BUFFER 2048
+// TODO: customowa droga błędne polecenie, za długie polecenia, static
 
 /**
  * @brief Wypisuje komunikat o błędzie. Funkcja pomocnicza
@@ -85,6 +86,7 @@ bool analyzeString(Map *map, char *command)
     ADD_ROAD
     REPAIR_ROAD
     GET_ROUTE_DESCRIPTION
+    REMOVE_ROAD
     DELIMITER
     char *whichCommand = strtok(command, delimiter);
 
@@ -99,6 +101,10 @@ bool analyzeString(Map *map, char *command)
     else if (strcmp(whichCommand, getRouteDescription) == 0) // getRtDescription
     {
         if (!userGetRouteDescription(map)) return false;
+    }
+    else if (strcmp(whichCommand, removeRoad) == 0) // removeRoad
+    {
+        if (!userRemoveRoad(map)) return false;
     }
     else // makeRoute
     {
@@ -343,4 +349,26 @@ void userReadInput(Map *map)
     {
         deleteMap(map);
     }
+}
+
+bool userRemoveRoad(Map *map)
+{
+    DELIMITER
+
+    char *city1 = strtok(NULL, delimiter);
+    char *city2 = strtok(NULL, delimiter);
+
+    if (city1 == NULL || city2 == NULL)
+    {
+        // not enough arguments
+        return false;
+    }
+    if (tooManyArguments(city2))
+    {
+        return false;
+    }
+
+    if (!removeRoad(map, city1, city2)) return false;
+
+    return true;
 }

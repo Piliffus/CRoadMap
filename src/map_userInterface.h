@@ -14,6 +14,7 @@
 #define ADD_ROAD const char *addRoad = "addRoad";
 #define REPAIR_ROAD const char *repairRoad = "repairRoad";
 #define GET_ROUTE_DESCRIPTION const char *getRouteDescription = "getRouteDescription";
+#define REMOVE_ROAD const char *removeRoad = "removeRoad";
 #define DELIMITER const char *delimiter = ";";
 
 /**
@@ -70,5 +71,15 @@ bool userRepairRoad(Map *map);
  * false w przeciwnym wypadku  - niepoprawna składnia polecenia lub argumenty
  * */
 bool userGetRouteDescription(Map *map);
+
+/**
+ * @brief Pozwala użytkownikowi usunąć drogę pomiędzy dwoma miastami
+ * Funkcja usuwa odcinek drogi pomiędzy dwoma miastami zgodnie z poleceniem zadanym
+ * przez użytkownika, zawartym w tokenach uzyskanych za pomocą strtok
+ * @param map[in]           - Wskaźnik na strukturę zawierającą mapę dróg krajowych
+ * @return wartość @p true jeśli wykonanie zakończyło się sukcesem, wartość @p
+ * false w przeciwnym wypadku  - niepoprawna składnia polecenia lub argumenty
+ * */
+bool userRemoveRoad(Map *map);
 
 #endif //DROGI_MAP_USERINTERFACE_H
