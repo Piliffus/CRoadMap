@@ -13,7 +13,7 @@
 #include <string.h>
 
 #define CHAR_BUFFER 2048
-// TODO: customowa droga błędne polecenie, za długie polecenia, static
+// TODO: customowa droga błędne polecenie, za długie polecenia, static, skrypt
 
 /**
  * @brief Wypisuje komunikat o błędzie. Funkcja pomocnicza
@@ -89,6 +89,7 @@ bool analyzeString(Map *map, char *command)
     REMOVE_ROAD
     REMOVE_ROUTE
     NEW_AUTO_ROUTE
+    EXTEND_ROUTE
     DELIMITER
 
     char *whichCommand = strtok(command, delimiter);
@@ -116,6 +117,10 @@ bool analyzeString(Map *map, char *command)
     else if (strcmp(whichCommand, newAutoRoute) == 0) // userNewAutoRoute
     {
         if (!userNewAutoRoute(map)) return false;
+    }
+    else if (strcmp(whichCommand, extendRoute) == 0) // userExtendRoute
+    {
+        if (!userExtendRoute(map)) return false;
     }
     else // makeRoute
     {
@@ -436,6 +441,34 @@ bool userNewAutoRoute(Map *map)
     if (routeIdInt == 0 || *routeIdIntLastChar != '\0') return false;
 
     if (!newRoute(map, routeIdInt, city1, city2)) return false;
+
+    return true;
+}
+
+bool userExtendRoute(Map *map)
+{
+    DELIMITER
+
+    char *routeId = strtok(NULL, delimiter);
+    char *city = strtok(NULL, delimiter);
+
+    if (routeId == NULL || city == NULL)
+    {
+        // not enough arguments
+        return false;
+    }
+    if (tooManyArguments(city))
+    {
+        return false;
+    }
+
+    // last char is a first char after numerical value
+    int routeIdInt;
+    char *routeIdIntLastChar;
+    routeIdInt = strtol(routeId, &routeIdIntLastChar, 10);
+    if (routeIdInt == 0 || *routeIdIntLastChar != '\0') return false;
+
+    if (!extendRoute(map, routeIdInt, city)) return false;
 
     return true;
 }
