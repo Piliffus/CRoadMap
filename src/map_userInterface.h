@@ -15,6 +15,7 @@
 #define REPAIR_ROAD const char *repairRoad = "repairRoad";
 #define GET_ROUTE_DESCRIPTION const char *getRouteDescription = "getRouteDescription";
 #define REMOVE_ROAD const char *removeRoad = "removeRoad";
+#define REMOVE_ROUTE const char *removeRoute = "removeRoute";
 #define DELIMITER const char *delimiter = ";";
 
 /**
@@ -81,5 +82,16 @@ bool userGetRouteDescription(Map *map);
  * false w przeciwnym wypadku  - niepoprawna składnia polecenia lub argumenty
  * */
 bool userRemoveRoad(Map *map);
+
+/**
+ * @brief Pozwala użytkownikowi usunąć drogę krajową
+ * Funkcja usuwa drogę krajową zgodnie z poleceniem zadanym
+ * przez użytkownika, zawartym w tokenach uzyskanych za pomocą strtok.
+ * Odcinki drogi oraz miasta nie ulegają usunięciu.
+ * @param map[in]           - Wskaźnik na strukturę zawierającą mapę dróg krajowych
+ * @return wartość @p true jeśli wykonanie zakończyło się sukcesem, wartość @p
+ * false w przeciwnym wypadku  - niepoprawna składnia polecenia lub argumenty
+ * */
+bool userRemoveRoute(Map *map);
 
 #endif //DROGI_MAP_USERINTERFACE_H
