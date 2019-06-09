@@ -11,9 +11,70 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <errno.h>
 
 #define CHAR_BUFFER 2048
-// TODO: customowa droga błędne polecenie, za długie polecenia, static, skrypt
+// TODO: customowa droga błędne polecenie, za długie polecenia, static, skrypt, za długi dystans ppowinno byc err
+
+/**
+ * @brief Zamienia podany string na odpowiadającą mu wartość int. Funkcja pomocnicza
+ * Funkcja zamienia string naint za pomocą funkcji strtol. Parametr
+ * isLastArgument udziela funkcji informacji, czy ma szukać na końcu znaku końca
+ * linii, czy '\0'. Odczytana wartość jest przypisana parametrowi "numerical"
+ * @param string [in,out]
+ * @param isLastArgument [in]
+ * @param numerical [out]
+ * @return wartość @p true, jeśli się udało, wartość @p false jeśli wystąpił błąd:
+ * wartość za duża, za mała, lub nieoczekiwane znaki.
+ */
+bool parseStringToInt(char* string, bool isLastArgument, int *numerical)
+{
+    errno = 0;
+    char *lengthIntLastChar;
+    long castCheck = strtol(string, &lengthIntLastChar, 10);
+
+    if (castCheck > INT_MAX || castCheck < INT_MIN) return false;
+
+    if (isLastArgument)
+    { if (*lengthIntLastChar != '\n') return false; }
+    else
+    { if (*lengthIntLastChar != '\0') return false; }
+
+    if (errno == ERANGE || errno == EINVAL) return false;
+
+    *numerical = castCheck;
+    return true;
+}
+
+/**
+ * @brief Zamienia podany string na odpowiadającą mu wartość unsigned. Funkcja pomocnicza
+ * Funkcja zamienia string na unsigned int za pomocą funkcji strtol. Parametr
+ * isLastArgument udziela funkcji informacji, czy ma szukać na końcu znaku końca
+ * linii, czy '\0'. Odczytana wartość jest przypisana parametrowi "numerical"
+ * @param string [in,out]
+ * @param isLastArgument [in]
+ * @param numerical [out]
+ * @return wartość @p true, jeśli się udało, wartość @p false jeśli wystąpił błąd:
+ * wartość za duża, za mała, lub nieoczekiwane znaki.
+ */
+bool parseStringToUnsigned(char *string, bool isLastArgument, unsigned *numerical)
+{
+    errno = 0;
+    char *lengthIntLastChar;
+    long castCheck = strtol(string, &lengthIntLastChar, 10);
+
+    if (castCheck > UINT_MAX || castCheck < 0) return false;
+
+    if (isLastArgument)
+    { if (*lengthIntLastChar != '\n') return false; }
+    else
+    { if (*lengthIntLastChar != '\0') return false; }
+
+    if (errno == ERANGE || errno == EINVAL) return false;
+
+    *numerical = castCheck;
+    return true;
+}
 
 /**
  * @brief Wypisuje komunikat o błędzie. Funkcja pomocnicza
@@ -170,16 +231,11 @@ bool userAddRoad(Map *map)
         return false;
     }
 
-    // last char is a first char after numerical value
     unsigned lengthInt;
-    char *lengthIntLastChar;
-    lengthInt = strtol(length, &lengthIntLastChar, 10);
-    if (lengthInt == 0 || *lengthIntLastChar != '\0') return false;
+    if (!parseStringToUnsigned(length, false, &lengthInt)) return false;
 
     int yearInt;
-    char *yearIntLastChar;
-    yearInt = strtol(year, &yearIntLastChar, 10);
-    if (yearInt == 0 || *yearIntLastChar != '\n') return false;
+    if (!parseStringToInt(year, true, &yearInt)) return false;
 
     if (!addRoad(map, city1, city2, lengthInt, yearInt)) return false;
 
@@ -202,11 +258,8 @@ bool userGetRouteDescription(Map *map)
         return false;
     }
 
-    // last char is a first char after numerical value
     int routeIdInt;
-    char *routeIdIntLastChar;
-    routeIdInt = strtol(routeId, &routeIdIntLastChar, 10);
-    if (routeIdInt == 0 || *routeIdIntLastChar != '\n') return false;
+    if (!parseStringToInt(routeId, true, &routeIdInt)) return false;
 
     const char *string = getRouteDescription(map, routeIdInt);
     if (string == NULL) return false;
@@ -235,11 +288,8 @@ bool userRepairRoad(Map *map)
         return false;
     }
 
-    // last char is a first char after numerical value
     int yearInt;
-    char *yearIntLastChar;
-    yearInt = strtol(year, &yearIntLastChar, 10);
-    if (yearInt == 0 || *yearIntLastChar != '\n') return false;
+    if (!parseStringToInt(year, true, &yearInt)) return false;
 
     if (!repairRoad(map, city1, city2, yearInt)) return false;
 
@@ -254,11 +304,8 @@ bool userMakeRoute(Map *map, char *command)
 
     if (routeId == NULL) return false;
 
-    // last char is a first char after numerical value
     int routeIdInt;
-    char *routeIdIntLastChar;
-    routeIdInt = strtol(routeId, &routeIdIntLastChar, 10);
-    if (routeIdInt == 0 || *routeIdIntLastChar != '\0') return false;
+    if (!parseStringToInt(routeId, false, &routeIdInt)) return false;
 
     char *startCity = strtok(NULL, delimiter);
     if (startCity == NULL) return false;
@@ -290,14 +337,10 @@ bool userMakeRoute(Map *map, char *command)
         }
 
         unsigned lengthInt;
-        char *lengthIntLastChar;
-        lengthInt = strtol(length, &lengthIntLastChar, 10);
-        if (lengthInt == 0 || *lengthIntLastChar != '\0') return false;
+        if (!parseStringToUnsigned(length, false, &lengthInt)) return false;
 
         int yearInt;
-        char *yearIntLastChar;
-        yearInt = strtol(year, &yearIntLastChar, 10);
-        if (yearInt == 0 || *yearIntLastChar != '\0') return false;
+        if (!parseStringToInt(year, false, &yearInt)) return false;
 
         if (!extendCustomRoute(map, routeIdInt, lengthInt, yearInt, destination))
         {
@@ -405,11 +448,8 @@ bool userRemoveRoute(Map *map)
         return false;
     }
 
-    // last char is a first char after numerical value
     int routeIdInt;
-    char *routeIdIntLastChar;
-    routeIdInt = strtol(routeId, &routeIdIntLastChar, 10);
-    if (routeIdInt == 0 || *routeIdIntLastChar != '\n') return false;
+    if (!parseStringToInt(routeId, true, &routeIdInt)) return false;
 
     if (!removeRoute(map, routeIdInt)) return false;
 
@@ -434,11 +474,8 @@ bool userNewAutoRoute(Map *map)
         return false;
     }
 
-    // last char is a first char after numerical value
     int routeIdInt;
-    char *routeIdIntLastChar;
-    routeIdInt = strtol(routeId, &routeIdIntLastChar, 10);
-    if (routeIdInt == 0 || *routeIdIntLastChar != '\0') return false;
+    if (!parseStringToInt(routeId, false, &routeIdInt)) return false;
 
     if (!newRoute(map, routeIdInt, city1, city2)) return false;
 
@@ -462,11 +499,8 @@ bool userExtendRoute(Map *map)
         return false;
     }
 
-    // last char is a first char after numerical value
     int routeIdInt;
-    char *routeIdIntLastChar;
-    routeIdInt = strtol(routeId, &routeIdIntLastChar, 10);
-    if (routeIdInt == 0 || *routeIdIntLastChar != '\0') return false;
+    if (!parseStringToInt(routeId, false, &routeIdInt)) return false;
 
     if (!extendRoute(map, routeIdInt, city)) return false;
 
