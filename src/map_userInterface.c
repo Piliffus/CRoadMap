@@ -27,7 +27,7 @@
  * @return wartość @p true, jeśli się udało, wartość @p false jeśli wystąpił błąd:
  * wartość za duża, za mała, lub nieoczekiwane znaki.
  */
-bool parseStringToInt(char* string, bool isLastArgument, int *numerical)
+static bool parseStringToInt(char* string, bool isLastArgument, int *numerical)
 {
     errno = 0;
     char *lengthIntLastChar;
@@ -57,7 +57,7 @@ bool parseStringToInt(char* string, bool isLastArgument, int *numerical)
  * @return wartość @p true, jeśli się udało, wartość @p false jeśli wystąpił błąd:
  * wartość za duża, za mała, lub nieoczekiwane znaki.
  */
-bool parseStringToUnsigned(char *string, bool isLastArgument, unsigned *numerical)
+static bool parseStringToUnsigned(char *string, bool isLastArgument, unsigned *numerical)
 {
     errno = 0;
     char *lengthIntLastChar;
@@ -83,7 +83,7 @@ bool parseStringToUnsigned(char *string, bool isLastArgument, unsigned *numerica
  * Funkcja pomocnicza używana przez userReadInput
  * @param lineNumber[in]        -Numer linii, w której wpisano błędne polecenie
  * */
-void printErrorMessage(int lineNumber)
+static void printErrorMessage(int lineNumber)
 {
     fprintf(stderr, "ERROR %d\n", lineNumber);
 }
@@ -96,7 +96,7 @@ void printErrorMessage(int lineNumber)
  * @param string[in,out]        -Resetowany string
  * @param stringLength[in]      -Długość resetowanego stringu
  * */
-void resetString(char *string, int stringLength)
+static void resetString(char *string, int stringLength)
 {
     for (int i = 0; i < stringLength; ++i)
     {
@@ -113,7 +113,7 @@ void resetString(char *string, int stringLength)
  * @return wartość @p true, jeśli znaleziono znak konca linii, wartość @p false
  * w przeciwnym wypadku.
  * */
-bool entireLineRead(char *string)
+static bool entireLineRead(char *string)
 {
     char *success = strchr(string, '\n');
     if (success == NULL)
@@ -137,7 +137,7 @@ bool entireLineRead(char *string)
  * @return wartość @p true, jeśli string jest poprawnym poleceniem, ktore zostało
  * poprawnie wykonane. Wartość @p false w przeciwnym wypadku.
  * */
-bool analyzeString(Map *map, char *command)
+static bool analyzeString(Map *map, char *command)
 {
     // lines starting with '#' and empty lines are ignored
     if (command[0] == '#' || command[0] == '\n')
@@ -203,7 +203,7 @@ bool analyzeString(Map *map, char *command)
  * @return wartość @p true, jeśli otrzymaliśmy za dużo argumentów.
  * Wartość @p false w przeciwnym wypadku.
  * */
-bool tooManyArguments(char *argument)
+static bool tooManyArguments(char *argument)
 {
     if (*(argument + (strlen(argument) - 1)) != '\n')
     {

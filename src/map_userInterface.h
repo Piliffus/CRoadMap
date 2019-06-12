@@ -23,7 +23,7 @@
 /**
  * @brief Przyjmuje polecenie od użytkownika
  * Funkcja przyjmuje polecenie ze standardowego wyjścia. Funkcja ignoruje
- * wiersze zaczynające się znakiem '#'. Wypisuje informację o błędzie,
+ * wiersze zaczynające się znakiem '#', oraz puste. Wypisuje informację o błędzie,
  * jeśli otrzymała niepoprawny parametr lub wywołanie funkcji zakońćzyło się błędem.
  * Komunikat jest wypisywany na standardowe wyjscie diagnostyczne, w formacie
  * "ERROR x", gdzie x to numer linii w której wpisano błędne polecenie. Jeżeli
