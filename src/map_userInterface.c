@@ -14,7 +14,7 @@
 #include <errno.h>
 
 #define CHAR_BUFFER 2048
-// TODO: customowa droga błędne polecenie, za długie polecenia, static, skrypt, za długi dystans ppowinno byc err
+// TODO: customowa droga błędne polecenie, static, skrypt
 
 /**
  * @brief Zamienia podany string na odpowiadającą mu wartość int. Funkcja pomocnicza
@@ -139,7 +139,8 @@ bool entireLineRead(char *string)
  * */
 bool analyzeString(Map *map, char *command)
 {
-    if (command[0] == '#') // lines starting with '#' are ignored
+    // lines starting with '#' and empty lines are ignored
+    if (command[0] == '#' || command[0] == '\n')
     {
         return true;
     }
@@ -377,18 +378,18 @@ void userReadInput(Map *map)
         lineNumber++;
         strcpy(command, buffer);
 
-        while (!entireLineRead(buffer))
+        while (!entireLineRead(command))
         {
             // command doesn`t fit, so we must increase size
-            bufferSize += CHAR_BUFFER;
-            command = realloc(command, sizeof(char) * bufferSize);
+            commandSize += CHAR_BUFFER;
+            command = realloc(command, ((sizeof(char)) * commandSize));
             // now we get next part of the line
             resetString(buffer, bufferSize);
             fgets(buffer, bufferSize, stdin);
             if (buffer == NULL) break;
             // we want to overwrite NULL, so -1
             lastWriteToBufferPosition += CHAR_BUFFER - 1;
-            strcpy(command + lastWriteToBufferPosition, buffer);
+            strcpy(command + (lastWriteToBufferPosition), buffer);
         }
 
         if (!analyzeString(map, command))

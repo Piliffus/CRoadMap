@@ -1172,6 +1172,9 @@ Route* newCustomRoute(Map *map, unsigned routeId, const char *startCity)
 bool extendCustomRoute(Map *map, unsigned routeId, unsigned length, int year,
                        const char *destinationName)
 {
+    // if wrong arguments don`t waste time doing rest, routeId assumed correct
+    if (length <= 0 || year == 0) return false;
+
     City *start = map->routes[routeId]->howTheWayGoes[
             map->routes[routeId]->length - 1];
     City *destination = findCity(map, destinationName);
