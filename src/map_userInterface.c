@@ -14,7 +14,7 @@
 #include <errno.h>
 
 #define CHAR_BUFFER 2048
-// TODO: customowa droga błędne polecenie, static, skrypt
+// TODO: customowa droga błędne polecenie(?), static w main, skrypt
 
 /**
  * @brief Zamienia podany string na odpowiadającą mu wartość int. Funkcja pomocnicza
@@ -139,6 +139,12 @@ static bool entireLineRead(char *string)
  * */
 static bool analyzeString(Map *map, char *command)
 {
+    // line without '\n'
+    if (!entireLineRead(command))
+    {
+        return false;
+    }
+
     // lines starting with '#' and empty lines are ignored
     if (command[0] == '#' || command[0] == '\n')
     {
@@ -355,6 +361,7 @@ bool userMakeRoute(Map *map, char *command)
 void userReadInput(Map *map)
 {
     bool madeOwnMap = false;
+
     // if we weren`t given any map, then we make a new one
     if (map == NULL)
     {
@@ -385,8 +392,20 @@ void userReadInput(Map *map)
             command = realloc(command, ((sizeof(char)) * commandSize));
             // now we get next part of the line
             resetString(buffer, bufferSize);
-            fgets(buffer, bufferSize, stdin);
-            if (buffer == NULL) break;
+            // if we entered this loop, then in worst case the only character
+            // not read is '\n'. If we get a null here, that means there is no
+            // '\n' in this line, so the file ends abruptly and that is an error
+            if (fgets(buffer, bufferSize, stdin) == NULL)
+            {
+                printErrorMessage(lineNumber);
+                free(buffer);
+                free(command);
+                if (madeOwnMap)
+                {
+                    deleteMap(map);
+                }
+                return;
+            }
             // we want to overwrite NULL, so -1
             lastWriteToBufferPosition += CHAR_BUFFER - 1;
             strcpy(command + (lastWriteToBufferPosition), buffer);
