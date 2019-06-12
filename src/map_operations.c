@@ -5,7 +5,6 @@
  * @copyright Uniwersytet Warszawski
  */
 
-#include <stddef.h>
 #include "map_operations.h"
 
 #include <stdlib.h>
