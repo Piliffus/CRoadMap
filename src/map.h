@@ -15,34 +15,143 @@
 #define ROUTES_AMOUNT 1000
 
 /**
-  * Struktura przechowująca informacje o mieście.
-  */
+   * Struktura przechowująca informacje o mieście.
+   */
+struct City
+{
+    /**
+     * @brief Nazwa miasta.
+     */
+    char *name;
+
+    /**
+     * @brief Lista łączona zawierająca odcinki drogowe incydentne do tego miasta.
+     */
+    struct RoadList *roads;
+
+    /**
+     * @brief Najlepsza odległość, używane przez algorytm djkstry
+     */
+    unsigned distance;
+
+    /**
+     * @brief Flaga używana przez algorytm djkstry
+     */
+    bool visited;
+
+    /**
+    * @brief Wskaznik na poprzednie miasto na drodze krajowej, uzwyane przez algorytm djkstry
+    */
+    struct City *previous;
+
+    /**
+    * @brief Najgorsza dotychczasowa wartość wieku, używana przez algorytm djkstry
+    */
+    int worstAge;
+};
 typedef struct City City;
 
 /**
-  * Lista przechowująca miasta.
-  */
+ * Węzeł łączonej listy miast.
+ */
+struct CityList
+{
+    /**
+     * Miasto, na które wskazuje aktualny węzeł.
+     */
+    struct City *this;
+
+    /**
+     * Następny węzeł na liście.
+     */
+    struct CityList *next;
+
+};
 typedef struct CityList CityList;
 
 /**
    * Struktura przechowująca informacje o drodze.
    */
+struct Road
+{
+    /**
+     * @brief Pierwszy koniec odcinka.
+     */
+    struct City *cityA;
+
+    /**
+     * @brief Drugi koniec odcinka.
+     */
+    struct City *cityB;
+
+    /**
+     * @brief Długość odcinka.
+     */
+    unsigned length;
+
+    /**
+     * @brief Rok budowy lub ostatniego remontu.
+     */
+    int year;
+};
 typedef struct Road Road;
 
 /**
-   * Lista przechowująca drogi.
-   */
+ * Węzeł listy odcinków drogowych dla pojedynczego miasta.
+ */
+struct RoadList
+{
+    /**
+     * Wskazywany odcinek.
+     */
+    struct Road *this;
+
+    /**
+     * Następny węzeł.
+     */
+    struct RoadList *next;
+};
 typedef struct RoadList RoadList;
 
 /**
- * Struktura przechowująca drogę krajową.
+ * @brief Struktura reprezentująca pojedynczą drógę krajową.
  */
+struct Route
+{
+    /**
+    * @brief Tablica wskaznikow na kolejne miasta drogi krajowej.
+    */
+    struct City **howTheWayGoes;
+
+    /**
+    * @brief Numer drogi krajowej.
+    */
+    unsigned routeId;
+
+    /**
+     * @brief Informacja przez ile miast prowadzi droga krajowa
+     */
+    unsigned length;
+};
 typedef struct Route Route;
 
 /**
- * Struktura przechowująca mapę dróg krajowych.
+ * @brief Główna struktura zawierająca wskaźnik do listy miast i tablicy dróg krajowych.
+ * Inicjalizację i usuwanie struktury realizują odpowiednio funkcje newMap() i deleteMap(Map *).
  */
+struct Map
+{
+    /**
+     * @brief Lista łączona zawierająca miasta.
+     */
+    struct CityList *cities;
+    /**
+     * @brief Tablica zawierająca drogi krajowe
+     */
+    struct Route *routes[ROUTES_AMOUNT];
+};
 typedef struct Map Map;
+
 
 /** @brief Tworzy nową strukturę.
  * Tworzy nową, pustą strukturę niezawierającą żadnych miast, odcinków dróg ani
