@@ -93,6 +93,11 @@ struct Road
      * @brief Rok budowy lub ostatniego remontu.
      */
     int year;
+
+    /**
+     * @brief Informacja, czy dany odcinek został już zakolejkowany do usunięcia
+     */
+    bool queued;
 };
 typedef struct Road Road;
 
@@ -114,7 +119,7 @@ struct RoadList
 typedef struct RoadList RoadList;
 
 /**
- * @brief Struktura reprezentująca pojedynczą drógę krajową.
+ * @brief Struktura reprezentująca pojedynczą drogę krajową.
  */
 struct Route
 {
@@ -122,11 +127,6 @@ struct Route
     * @brief Tablica wskaznikow na kolejne miasta drogi krajowej.
     */
     struct City **howTheWayGoes;
-
-    /**
-    * @brief Numer drogi krajowej.
-    */
-    unsigned routeId;
 
     /**
      * @brief Informacja przez ile miast prowadzi droga krajowa
@@ -145,6 +145,10 @@ struct Map
      * @brief Lista łączona zawierająca miasta.
      */
     struct CityList *cities;
+    /**
+     * @brief Wskaźnik na ostatnio dodane miasto, przyspiesza dodawanie nowych
+     */
+    struct CityList *lastCity;
     /**
      * @brief Tablica zawierająca drogi krajowe
      */

@@ -26,19 +26,6 @@ static void reverseArray(City **array, unsigned length)
     }
 }
 
-bool isOnTheArray(Road *pRoad, Road *remove[], int ofRemove) // helper
-{
-    int i = 0;
-    for(; i < ofRemove; i++)
-    {
-        if (remove[i] == pRoad)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
 City *lowestDistanceNode(Map *map)
 {
     unsigned lowestDistance = INFINITY;
@@ -154,7 +141,6 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
     // we must now make new route out of our shortest path
     Route *newRoute = malloc(sizeof(Route));
     if (newRoute == NULL) return NULL;
-    newRoute->routeId = routeId;
     newRoute->length = 0;
 
     newRoute->howTheWayGoes = malloc(sizeof(City *) * newRoute->length);
@@ -226,6 +212,7 @@ City *makeNewCity(Map *map, const char *name)
     if (map->cities == NULL)
     {
         node = map->cities = malloc(sizeof(CityList));
+
     }
     else
     {
@@ -248,6 +235,7 @@ City *makeNewCity(Map *map, const char *name)
             strcpy(node->this->name, name);
             node->this->roads = NULL;
 
+            map->lastCity = node;
             return node->this; // first node has no this
         }
         else
@@ -276,6 +264,7 @@ bool makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear)
             road->cityB = cityB;
             road->length = length;
             road->year = builtYear;
+            road->queued = false;
             addToRoadList(cityA, newNodeA);
             addToRoadList(cityB, newNodeB);
             return true;
@@ -362,16 +351,7 @@ void addToRoadList(City *whereRoad, RoadList *addedRoad)
 
 CityList *findEmptySpotForCityList(Map *map)
 {
-    CityList *whereCity = map->cities;
-    CityList *act = map->cities;
-
-    while (act != NULL)
-    {
-        whereCity = act;
-        act = act->next;
-    }
-
-    return whereCity;
+    return map->lastCity;
 }
 
 Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2)

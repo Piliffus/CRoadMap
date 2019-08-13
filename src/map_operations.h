@@ -38,15 +38,6 @@ void addToRoadList(City *whereRoad, RoadList *addedRoad);
 Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2);
 
 /**
- * Funkcja pomocnicza. Sprawdza, czy odcinek drogi znajduje się w podanej tablicy wskaźników.
- * @param pRoad -- poszukiwany odcinek drogowy
- * @param remove -- tablica odcinków drogowych
- * @param ofRemove -- rozmiar tablicy remove
- * @return true, jeśli odcinek znajduje się na liście, w przeciwnym wypadku false.
- */
-bool isOnTheArray(Road *pRoad, Road *remove[], int ofRemove);
-
-/**
  * @brief Usuwa odcinek drogowy z listy odcinków danego miasta.
  * @param pRoad -- wskaznik na usuwany odcinek drogi
  * @param pCity -- wskaznik na miasto z którego listy usuwamy odcinek drogi

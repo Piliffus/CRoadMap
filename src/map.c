@@ -19,6 +19,7 @@ Map *newMap(void)
     if (newMap != NULL)
     {
         newMap->cities = NULL;
+        newMap->lastCity = NULL;
 
         for (int i = 0; i < ROUTES_AMOUNT; i++)
         {
@@ -31,6 +32,7 @@ Map *newMap(void)
 
 void deleteMap(Map *map)
 {
+    // An array for remembering roads to be removed
     Road **roadsToRemove = malloc(sizeof(Road*) * 0);
     int sizeOfRemove = 0;
 
@@ -42,13 +44,14 @@ void deleteMap(Map *map)
             RoadList *actRoad = act->this->roads;
             while (actRoad != NULL)
             {
-                if (!isOnTheArray(actRoad->this, roadsToRemove, sizeOfRemove))
+                if (!actRoad->this->queued)
                 {
                     // remember to remove this road later
                     sizeOfRemove++;
                     roadsToRemove = realloc(roadsToRemove,
                             sizeOfRemove * (sizeof(Road *)));
                     roadsToRemove[sizeOfRemove - 1] = actRoad->this;
+                    actRoad->this->queued = true;
                 }
                 RoadList *remove = actRoad;
                 actRoad = actRoad->next;
