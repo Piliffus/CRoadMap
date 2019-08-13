@@ -14,7 +14,6 @@
 #include <errno.h>
 
 #define CHAR_BUFFER 2048
-// TODO: customowa droga błędne polecenie(?), static w main, skrypt
 
 /**
  * @brief Zamienia podany string na odpowiadającą mu wartość int. Funkcja pomocnicza
@@ -84,18 +83,14 @@ static void printErrorMessage(int lineNumber)
 
 /**
  * @brief Resetuje string. Funkcja pomocnicza
- * Ustawia wszystkie znaki w zadanym stringu na NULL, aby uniknąć błędów przy
+ * Ustawia pierwszy znak w zadanym stringu na NULL, aby uniknąć błędów przy
  * późniejszym odczycie i zapisie.
  * Funkcja pomocnicza używana przez userReadInput
  * @param string[in,out]        -Resetowany string
- * @param stringLength[in]      -Długość resetowanego stringu
  * */
-static void resetString(char *string, int stringLength)
+static void resetString(char *string)
 {
-    for (int i = 0; i < stringLength; ++i)
-    {
-        string[i] = '\0';
-    }
+    string[0] = '\0';
 }
 
 /**
@@ -374,12 +369,12 @@ void userReadInput(Map *map)
 
     char *buffer = malloc(sizeof(char) * CHAR_BUFFER);
     int bufferSize = CHAR_BUFFER;
-    resetString(buffer, bufferSize);
+    resetString(buffer);
 
     char *command = malloc(sizeof(char) * CHAR_BUFFER);
     int commandSize = CHAR_BUFFER;
     int lastWriteToBufferPosition = 0;
-    resetString(command, commandSize);
+    resetString(command);
 
     while (fgets(buffer, bufferSize, stdin) != NULL)
     {
@@ -392,7 +387,7 @@ void userReadInput(Map *map)
             commandSize += CHAR_BUFFER;
             command = realloc(command, ((sizeof(char)) * commandSize));
             // now we get next part of the line
-            resetString(buffer, bufferSize);
+            resetString(buffer);
             // if we entered this loop, then in worst case the only character
             // not read is '\n'. If we get a null here, that means there is no
             // '\n' in this line, so the file ends abruptly and that is an error
@@ -417,8 +412,8 @@ void userReadInput(Map *map)
             printErrorMessage(lineNumber);
         }
 
-        resetString(command, commandSize);
-        resetString(buffer, bufferSize);
+        resetString(command);
+        resetString(buffer);
         lastWriteToBufferPosition = 0;
     }
 
