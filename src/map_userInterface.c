@@ -18,16 +18,16 @@
 
 /**
  * @brief Zamienia podany string na odpowiadającą mu wartość int. Funkcja pomocnicza
- * Funkcja zamienia string naint za pomocą funkcji strtol. Parametr
- * isLastArgument udziela funkcji informacji, czy ma szukać na końcu znaku końca
- * linii, czy '\0'. Odczytana wartość jest przypisana parametrowi "numerical"
+ * Funkcja zamienia string naint za pomocą funkcji strtol. Funkcja szuka na końcu
+ * znaku '\0' aby upewnic sie ze dostala poprawna wartosc numeryczna.
+ * Odczytana wartość jest przypisana parametrowi "numerical"
  * @param string [in,out]
  * @param isLastArgument [in]
  * @param numerical [out]
  * @return wartość @p true, jeśli się udało, wartość @p false jeśli wystąpił błąd:
  * wartość za duża, za mała, lub nieoczekiwane znaki.
  */
-static bool parseStringToInt(char* string, bool isLastArgument, int *numerical)
+static bool parseStringToInt(char* string, int *numerical)
 {
     errno = 0;
     char *lengthIntLastChar;
@@ -35,10 +35,7 @@ static bool parseStringToInt(char* string, bool isLastArgument, int *numerical)
 
     if (castCheck > INT_MAX || castCheck < INT_MIN) return false;
 
-    if (isLastArgument)
-    { if (*lengthIntLastChar != '\n') return false; }
-    else
-    { if (*lengthIntLastChar != '\0') return false; }
+    if (*lengthIntLastChar != '\0') return false;
 
     if (errno == ERANGE || errno == EINVAL) return false;
 
@@ -48,16 +45,16 @@ static bool parseStringToInt(char* string, bool isLastArgument, int *numerical)
 
 /**
  * @brief Zamienia podany string na odpowiadającą mu wartość unsigned. Funkcja pomocnicza
- * Funkcja zamienia string na unsigned int za pomocą funkcji strtol. Parametr
- * isLastArgument udziela funkcji informacji, czy ma szukać na końcu znaku końca
- * linii, czy '\0'. Odczytana wartość jest przypisana parametrowi "numerical"
+ * Funkcja zamienia string na unsigned int za pomocą funkcji strtol. Funkcja
+ * szuka na końcu znaku '\0' aby upewnic sie ze dostala poprawna wartosc numeryczna.
+ * Odczytana wartość jest przypisana parametrowi "numerical"
  * @param string [in,out]
  * @param isLastArgument [in]
  * @param numerical [out]
  * @return wartość @p true, jeśli się udało, wartość @p false jeśli wystąpił błąd:
  * wartość za duża, za mała, lub nieoczekiwane znaki.
  */
-static bool parseStringToUnsigned(char *string, bool isLastArgument, unsigned *numerical)
+static bool parseStringToUnsigned(char *string, unsigned *numerical)
 {
     errno = 0;
     char *lengthIntLastChar;
@@ -65,10 +62,7 @@ static bool parseStringToUnsigned(char *string, bool isLastArgument, unsigned *n
 
     if (castCheck > UINT_MAX || castCheck < 0) return false;
 
-    if (isLastArgument)
-    { if (*lengthIntLastChar != '\n') return false; }
-    else
-    { if (*lengthIntLastChar != '\0') return false; }
+    if (*lengthIntLastChar != '\0') return false;
 
     if (errno == ERANGE || errno == EINVAL) return false;
 
@@ -202,8 +196,9 @@ static bool analyzeString(Map *map, char *command)
  * @brief Sprawdza czy otrzymaliśmy za dużo argumentów. Funkcja pomocnicza
  * Funkcja sprawdza czy na końcu podanego stringu, który z założeniem jest
  * ostatnim wyrazem znalezionym w linii wpisanej przez użytkownika, znajduje
- * się znak końca linii. Jeżeli nie,argument oznacza to że albo wpisano za dużo argumentów,
- * albo ostatni wyraz nie kończy się poprawnym znakiem.
+ * się znak końca linii. Jeżeli nie, oznacza to że albo wpisano za dużo argumentów,
+ * albo ostatni wyraz nie kończy się poprawnym znakiem. Znak konca linii zostaje
+ * potem usuniety, poniewaz nie bedzie juz potrzebny
  * Funkcja pomocnicza używana przez wiele funkcji
  * @param argument[in]            - Sprawdzany string, ostatni wyraz polecenia
  * @return wartość @p true, jeśli otrzymaliśmy za dużo argumentów.
@@ -211,12 +206,18 @@ static bool analyzeString(Map *map, char *command)
  * */
 static bool tooManyArguments(char *argument)
 {
-    if (*(argument + (strlen(argument) - 1)) != '\n')
+    unsigned length = strlen(argument);
+
+    if (*(argument + (length - 1)) != '\n')
     {
         return true;
     }
 
-    else return false;
+    else
+    {
+        *(argument + (length - 1)) = '\0';
+        return false;
+    }
 }
 
 bool userAddRoad(Map *map)
@@ -239,10 +240,10 @@ bool userAddRoad(Map *map)
     }
 
     unsigned lengthInt;
-    if (!parseStringToUnsigned(length, false, &lengthInt)) return false;
+    if (!parseStringToUnsigned(length, &lengthInt)) return false;
 
     int yearInt;
-    if (!parseStringToInt(year, true, &yearInt)) return false;
+    if (!parseStringToInt(year, &yearInt)) return false;
 
     if (!addRoad(map, city1, city2, lengthInt, yearInt)) return false;
 
@@ -266,7 +267,7 @@ bool userGetRouteDescription(Map *map)
     }
 
     int routeIdInt;
-    if (!parseStringToInt(routeId, true, &routeIdInt)) return false;
+    if (!parseStringToInt(routeId, &routeIdInt)) return false;
 
     const char *string = getRouteDescription(map, routeIdInt);
     if (string == NULL) return false;
@@ -296,7 +297,7 @@ bool userRepairRoad(Map *map)
     }
 
     int yearInt;
-    if (!parseStringToInt(year, true, &yearInt)) return false;
+    if (!parseStringToInt(year, &yearInt)) return false;
 
     if (!repairRoad(map, city1, city2, yearInt)) return false;
 
@@ -312,7 +313,7 @@ bool userMakeRoute(Map *map, char *command)
     if (routeId == NULL) return false;
 
     int routeIdInt;
-    if (!parseStringToInt(routeId, false, &routeIdInt)) return false;
+    if (!parseStringToInt(routeId, &routeIdInt)) return false;
 
     char *startCity = strtok(NULL, delimiter);
     if (startCity == NULL) return false;
@@ -344,10 +345,10 @@ bool userMakeRoute(Map *map, char *command)
         }
 
         unsigned lengthInt;
-        if (!parseStringToUnsigned(length, false, &lengthInt)) return false;
+        if (!parseStringToUnsigned(length, &lengthInt)) return false;
 
         int yearInt;
-        if (!parseStringToInt(year, false, &yearInt)) return false;
+        if (!parseStringToInt(year, &yearInt)) return false;
 
         if (!extendCustomRoute(map, routeIdInt, lengthInt, yearInt, destination))
         {
@@ -469,7 +470,7 @@ bool userRemoveRoute(Map *map)
     }
 
     int routeIdInt;
-    if (!parseStringToInt(routeId, true, &routeIdInt)) return false;
+    if (!parseStringToInt(routeId, &routeIdInt)) return false;
 
     if (!removeRoute(map, routeIdInt)) return false;
 
@@ -495,7 +496,7 @@ bool userNewAutoRoute(Map *map)
     }
 
     int routeIdInt;
-    if (!parseStringToInt(routeId, false, &routeIdInt)) return false;
+    if (!parseStringToInt(routeId, &routeIdInt)) return false;
 
     if (!newRoute(map, routeIdInt, city1, city2)) return false;
 
@@ -520,7 +521,7 @@ bool userExtendRoute(Map *map)
     }
 
     int routeIdInt;
-    if (!parseStringToInt(routeId, false, &routeIdInt)) return false;
+    if (!parseStringToInt(routeId, &routeIdInt)) return false;
 
     if (!extendRoute(map, routeIdInt, city)) return false;
 
