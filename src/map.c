@@ -18,10 +18,9 @@ Map *newMap(void)
 
     if (newMap != NULL)
     {
-        newMap->cities = NULL;
-        newMap->lastCity = NULL;
+        newMap->cities = newDictionary();
 
-        for (int i = 0; i < ROUTES_AMOUNT; i++)
+        for (int i = 0; i < ROUTES_AMOUNT; ++i)
         {
             newMap->routes[i] = NULL;
         }
@@ -38,40 +37,42 @@ void deleteMap(Map *map)
 
     if (map != NULL)
     {
-        CityList *act = map->cities;
-        while (act != NULL)
+        for (int k = 0; k < HASHSIZE; ++k)
         {
-            RoadList *actRoad = act->this->roads;
-            while (actRoad != NULL)
+            dNode *current;
+            for (current = map->cities->nodes[k];
+                 current != NULL; current = current->next)
             {
-                if (!actRoad->this->queued)
+                RoadList *actRoad = current->this->roads;
+                while (actRoad != NULL)
                 {
-                    // remember to remove this road later
-                    sizeOfRemove++;
-                    roadsToRemove = realloc(roadsToRemove,
-                            sizeOfRemove * (sizeof(Road *)));
-                    roadsToRemove[sizeOfRemove - 1] = actRoad->this;
-                    actRoad->this->queued = true;
+                    if (!actRoad->this->queued)
+                    {
+                        // remember to remove this road later
+                        ++sizeOfRemove;
+                        roadsToRemove = realloc(roadsToRemove,
+                                                sizeOfRemove *
+                                                (sizeof(Road *)));
+                        roadsToRemove[sizeOfRemove - 1] = actRoad->this;
+                        actRoad->this->queued = true;
+                    }
+                    RoadList *remove = actRoad;
+                    actRoad = actRoad->next;
+                    free(remove); // remove RoadList
                 }
-                RoadList *remove = actRoad;
-                actRoad = actRoad->next;
-                free(remove); // remove RoadList
+                free(current->this->name);
+                free(current->this); // remove City
             }
-            free(act->this->name);
-            free(act->this); // remove City
-            CityList *removeAct = act;
-            act = act->next;
-            free(removeAct); // remove CityList
         }
 
         int j = 0;
-        for (; j < sizeOfRemove; j++)
+        for (; j < sizeOfRemove; ++j)
         {
             free(roadsToRemove[j]); // remove road
         }
         free(roadsToRemove);
 
-        for (int i = 0; i < ROUTES_AMOUNT; i++) // remove routes
+        for (int i = 0; i < ROUTES_AMOUNT; ++i) // remove routes
         {
             if (map->routes[i] != NULL)
             {
@@ -79,6 +80,7 @@ void deleteMap(Map *map)
                 free(map->routes[i]);
             }
         }
+        removeDictionary(map->cities);
         free(map);
     }
 }
@@ -271,7 +273,7 @@ bool extendRoute(Map *map, unsigned routeId, const char *city)
     oldRoute->length--; // length is 1 more than last index, so if we add two
     // lengths to each other then the result will be 2 bigger, so we compensate
 
-    for (unsigned i = 0; i < newPart->length; i++)
+    for (unsigned i = 0; i < newPart->length; ++i)
     {
         oldRoute->howTheWayGoes[oldLength-1 + i] = newPart->howTheWayGoes[i];
     }
@@ -314,7 +316,7 @@ char const *getRouteDescription(Map *map, unsigned routeId)
     }
 
     unsigned i = 0; // 'i' declared outside because will be needed later
-    for (; i < map->routes[routeId]->length - 1; i++)
+    for (; i < map->routes[routeId]->length - 1; ++i)
     {
         neededLength += snprintf(NULL, 0, "%s;",
                                 map->routes[routeId]->howTheWayGoes[i]->name);

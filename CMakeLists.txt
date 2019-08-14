@@ -27,7 +27,9 @@ set(SOURCE_FILES
         src/map_userInterface.c
         src/map_userInterface.h
         src/map_operations.c
-        src/map_operations.h)
+        src/map_operations.h
+        src/Dictionary.c
+        src/Dictionary.h)
 
 # Wskazujemy plik wykonywalny.
 add_executable(map ${SOURCE_FILES})

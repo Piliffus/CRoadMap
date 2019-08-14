@@ -11,6 +11,7 @@
 
 #include <stdbool.h>
 #include <limits.h>
+#include "Dictionary.h"
 
 #define ROUTES_AMOUNT 1000
 
@@ -50,24 +51,6 @@ struct City
     int worstAge;
 };
 typedef struct City City;
-
-/**
- * Węzeł łączonej listy miast.
- */
-struct CityList
-{
-    /**
-     * Miasto, na które wskazuje aktualny węzeł.
-     */
-    struct City *this;
-
-    /**
-     * Następny węzeł na liście.
-     */
-    struct CityList *next;
-
-};
-typedef struct CityList CityList;
 
 /**
    * Struktura przechowująca informacje o drodze.
@@ -142,13 +125,9 @@ typedef struct Route Route;
 struct Map
 {
     /**
-     * @brief Lista łączona zawierająca miasta.
+     * @brief Słownik zawierający miasta.
      */
-    struct CityList *cities;
-    /**
-     * @brief Wskaźnik na ostatnio dodane miasto, przyspiesza dodawanie nowych
-     */
-    struct CityList *lastCity;
+    struct Dictionary *cities;
     /**
      * @brief Tablica zawierająca drogi krajowe
      */

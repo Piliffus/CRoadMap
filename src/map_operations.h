@@ -10,16 +10,9 @@
 
 #include "map.h"
 
-#define CHAR_BUFFER 1024
+#define CHAR_BUFFER 4096
 #define INFINITY UINT_MAX
 #define YEAR_INFINTY INT_MAX
-
-/**
- * @brief Znajduje na liście miast węzeł, do którego można dołączyć kolejny.
- * @param map -- struktura mapy
- * @return Ostatni węzeł mapy, lub NULL jeśli mapa jest pusta.
- */
-CityList *findEmptySpotForCityList(Map *map);
 
 /**
  * @brief Dodaje nowy węzeł odcinka drogowego do listy odcinków w podanym mieście.

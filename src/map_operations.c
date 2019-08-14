@@ -11,6 +11,26 @@
 #include <string.h>
 #include <stdio.h>
 
+static void markUnvisited(dNode *node)
+{
+    if (node != NULL)
+    {
+        node->this->distance = INFINITY;
+        node->this->worstAge = YEAR_INFINTY;
+        node->this->visited = false;
+        node->this->previous = NULL;
+        markUnvisited(node->next);
+    }
+}
+
+static void markAllUnvisited(Dictionary *dictionary)
+{
+    for (unsigned i = 0; i < HASHSIZE; ++i)
+    {
+        markUnvisited(dictionary->nodes[i]);
+    }
+}
+
 static int min(int arg1, int arg2)
 {
     return arg1 < arg2 ? arg1 : arg2;
@@ -18,7 +38,7 @@ static int min(int arg1, int arg2)
 
 static void reverseArray(City **array, unsigned length)
 {
-    for (unsigned i = 0; i < (length / 2); i++)
+    for (unsigned i = 0; i < (length / 2); ++i)
     {
         City *helper = array[length-1-i];
         array[length-1-i] = array[i];
@@ -31,15 +51,20 @@ City *lowestDistanceNode(Map *map)
     unsigned lowestDistance = INFINITY;
     City *lowestNode = NULL;
 
-    for (CityList* act = map->cities; act != NULL; act=act->next)
+    for (int i = 0; i < HASHSIZE; ++i)
     {
-        if (!act->this->visited) // we want unvisited node
+        for (dNode *current = map->cities->nodes[i];
+             current != NULL; current = current->next)
         {
-            if (act->this->distance < lowestDistance)
+            if (!current->this->visited) // we want unvisited node
             {
-                lowestDistance = act->this->distance;
-                lowestNode = act->this;
+                if (current->this->distance < lowestDistance)
+                {
+                    lowestDistance = current->this->distance;
+                    lowestNode = current->this;
+                }
             }
+
         }
     }
 
@@ -49,35 +74,33 @@ City *lowestDistanceNode(Map *map)
 
 bool thereAreUnvisitedNodes(Map *map)
 {
-    for (CityList* act = map->cities; act != NULL; act=act->next)
+    for (unsigned i = 0; i < HASHSIZE; ++i)
     {
-        if (!act->this->visited)
+        dNode *current = map->cities->nodes[i];
+
+        while (current != NULL)
         {
-            return true;
+            if (!current->this->visited)
+            {
+                return true;
+            }
+            else current = current->next;
         }
     }
 
     return false;
 }
 
-
 Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
 {
-    for (CityList *akt = map->cities; akt != NULL; akt = akt->next)
-    {
-        // we make set of unvisited nodes
-        akt->this->distance = INFINITY;
-        akt->this->worstAge = YEAR_INFINTY;
-        akt->this->visited = false;
-        akt->this->previous = NULL;
-
-    }
+    // we make set of unvisited nodes
+    markAllUnvisited(map->cities);
 
     if (map->routes[routeId] != NULL)
     {
         // if we are extending an already existing route, then we must make sure
         // it doesn`t cross itself
-        for (unsigned i = 0; i < map->routes[routeId]->length; i++)
+        for (unsigned i = 0; i < map->routes[routeId]->length; ++i)
         {
             map->routes[routeId]->howTheWayGoes[i]->visited = true;
         }
@@ -126,7 +149,6 @@ Route *dkstra(Map *map, unsigned int routeId, City *start, City *finish)
                     {
                         // we cannot decide how to get to this node, so this
                         // node is unreachable
-//                        neighbour->visited = true;
                         neighbour->previous = NULL;
                     }
                 }
@@ -208,45 +230,28 @@ void removeFromRoadList(Road *pRoad, City *pCity)
 
 City *makeNewCity(Map *map, const char *name)
 {
-    CityList *node, *where;
-    if (map->cities == NULL)
-    {
-        node = map->cities = malloc(sizeof(CityList));
+    City *newCity = malloc(sizeof(City));
 
-    }
-    else
+    if (newCity != NULL)
     {
-        where = findEmptySpotForCityList(map);
-        node = where->next = malloc(sizeof(CityList));
-    }
-
-    if (node != NULL)
-    {
-        node->this = malloc(sizeof(City));
-        node->next = NULL;
-        if (node->this != NULL)
+        newCity->name = malloc(sizeof(char) * (strlen(name) + 1));
+        if (newCity->name == NULL)
         {
-            node->this->name = malloc(sizeof(char) * (strlen(name) + 1));
-            if (node->this->name == NULL)
-            {
-                free(node->this);
-                return NULL;
-            }
-            strcpy(node->this->name, name);
-            node->this->roads = NULL;
-
-            map->lastCity = node;
-            return node->this; // first node has no this
-        }
-        else
-        {
+            free(newCity);
             return NULL;
         }
+
+        strcpy(newCity->name, name);
+        newCity->roads = NULL;
+
+        put(map->cities, newCity);
+        return newCity;
     }
     else
     {
         return NULL;
     }
+
 }
 
 bool makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear)
@@ -282,25 +287,12 @@ bool makeNewRoad(City *cityA, City *cityB, unsigned length, int builtYear)
 
 City *findCity(Map *map, const char *cityName)
 {
-    CityList *current = map->cities;
-
-    while (current != NULL)
-    {
-        // if current is not null then it must have `this`
-        if (strcmp(current->this->name, cityName) == 0)
-        {
-            return current->this;
-        }
-
-        current = current->next;
-    }
-
-    return NULL;
+    return get(map->cities, cityName);
 }
 
 bool isCorrectName(const char *name)
 {
-    int i = 0;
+    unsigned i = 0;
 
     if (name[i] == '\0')
     {
@@ -317,10 +309,7 @@ bool isCorrectName(const char *name)
         {
             return false;
         }
-        else
-        {
-            i++;
-        }
+        ++i;
     }
 
     return true;
@@ -347,11 +336,6 @@ void addToRoadList(City *whereRoad, RoadList *addedRoad)
         previous->next = addedRoad;
         addedRoad->next = NULL;
     }
-}
-
-CityList *findEmptySpotForCityList(Map *map)
-{
-    return map->lastCity;
 }
 
 Road *findRoadBetweenCities(Map *map, const char *city1, const char *city2)
@@ -387,7 +371,7 @@ bool hasCities(Route *route, City *cityA, City *cityB)
     bool cityAOK = false;
     bool cityBOK = false;
 
-    for (unsigned i = 0; i < route->length; i++)
+    for (unsigned i = 0; i < route->length; ++i)
     {
         if (!cityAOK)
         {
@@ -414,7 +398,7 @@ bool hasCities(Route *route, City *cityA, City *cityB)
 
 unsigned findCityIndex(Route *route, City *cityToFind)
 {
-    for (unsigned i = 0; i < route->length; i++)
+    for (unsigned i = 0; i < route->length; ++i)
     {
         if (route->howTheWayGoes[i] == cityToFind)
         {
@@ -443,16 +427,16 @@ void insertIntoRoute(Route *target, Route *source, unsigned from, unsigned to)
     unsigned h = 0;
     for (unsigned i = oldLength-1; i >= to; i--)
     {
-        h++;
+        ++h;
         target->howTheWayGoes[target->length-h] = target->howTheWayGoes[i];
         target->howTheWayGoes[i] = NULL;
     }
 
     unsigned j = from;
-    for (unsigned k = 0; k < source->length; k++)
+    for (unsigned k = 0; k < source->length; ++k)
     {
         target->howTheWayGoes[j] = source->howTheWayGoes[k];
-        j++;
+        ++j;
     }
 }
 
@@ -463,13 +447,13 @@ bool checkRoutesAfterRoadRemoval(Map *map, City *cityA, City *cityB)
 
     Route *potentialNewRoutes[ROUTES_AMOUNT];
 
-    for (int i = 0; i < ROUTES_AMOUNT; i++)
+    for (int i = 0; i < ROUTES_AMOUNT; ++i)
     {
         potentialNewRoutes[i] = NULL;
     }
 
-    unsigned int requiredSize = 0;
-    for (int j = 0; j < ROUTES_AMOUNT; j++)
+    unsigned requiredSize = 0;
+    for (int j = 0; j < ROUTES_AMOUNT; ++j)
     {
         if (hasCities(map->routes[j], cityA, cityB))
         {
@@ -494,7 +478,7 @@ bool checkRoutesAfterRoadRemoval(Map *map, City *cityA, City *cityB)
     if (memoryCheck == NULL) return false;
     free(memoryCheck);
 
-    for (int k = 0; k < ROUTES_AMOUNT; k++)
+    for (int k = 0; k < ROUTES_AMOUNT; ++k)
     {
         if (potentialNewRoutes[k] != NULL)
         {
@@ -504,7 +488,7 @@ bool checkRoutesAfterRoadRemoval(Map *map, City *cityA, City *cityB)
         }
     }
 
-    for (int i = 0; i < ROUTES_AMOUNT; i++)
+    for (int i = 0; i < ROUTES_AMOUNT; ++i)
     {
         if (potentialNewRoutes[i] != NULL)
         {

@@ -13,7 +13,7 @@
 #include <string.h>
 #include <errno.h>
 
-#define CHAR_BUFFER 2048
+#define CHAR_BUFFER 4096
 
 /**
  * @brief Zamienia podany string na odpowiadającą mu wartość int. Funkcja pomocnicza
@@ -88,7 +88,7 @@ static void printErrorMessage(int lineNumber)
  * Funkcja pomocnicza używana przez userReadInput
  * @param string[in,out]        -Resetowany string
  * */
-static void resetString(char *string)
+static inline void resetString(char *string)
 {
     string[0] = '\0';
 }
@@ -102,7 +102,7 @@ static void resetString(char *string)
  * @return wartość @p true, jeśli znaleziono znak konca linii, wartość @p false
  * w przeciwnym wypadku.
  * */
-static bool entireLineRead(char *string)
+static inline bool entireLineRead(char *string)
 {
     char *success = strchr(string, '\n');
     if (success == NULL)
@@ -378,7 +378,7 @@ void userReadInput(Map *map)
 
     while (fgets(buffer, bufferSize, stdin) != NULL)
     {
-        lineNumber++;
+        ++lineNumber;
         strcpy(command, buffer);
 
         while (!entireLineRead(command))
