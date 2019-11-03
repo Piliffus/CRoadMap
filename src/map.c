@@ -176,11 +176,6 @@ bool removeRoad(Map *map, const char *city1, const char *city2)
 
 bool repairRoad(Map *map, const char *city1, const char *city2, int repairYear)
 {
-    if (!isCorrectName(city1) || !isCorrectName(city2))
-    {
-        return false;
-    }
-
     if (repairYear == 0)
     {
         return false;
